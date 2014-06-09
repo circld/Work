@@ -6,6 +6,12 @@ Module with functions that can:
     move_files(manager, top_dir) - move created files into appropriate
         file directory
 
+Example usage (assumes pwd is the parent directory of RawData):
+    $ ipython
+    $ import raw
+    $ df = raw.load_file('ex_file.xlsx')
+    $ raw.extract_files(df, 'mgr_dir_name')
+    $ raw.move_files('mgr_dir_name', '.')
 """
 
 
@@ -64,7 +70,7 @@ def extract_files(df, manager):
     '''
     date_col = find_date_col(df)
     dates = build_dates(df, date_col)
-    manager = manager.title()
+    manager = manager
     for date in dates:
         print 'Processing %s' % date
         temp_df = df[df[date_col] == date]
@@ -80,7 +86,7 @@ def is_valid(manager, fileName):
     Takes manager name and file name
     Returns Boolean if file name matches extract_files format
     '''
-    return fileName[0:len(manager)] == manager.title() and \
+    return fileName[0:len(manager)] == manager and \
             fileName[-5:] == '.xlsx'
 
 def extract_file_date(fileName):
@@ -98,7 +104,7 @@ def move_files(manager, top_dir):
     Returns None; moves all xlsx files matching extract_files naming
                   convention and moves them into the appropriate folder
     '''
-    manager = manager.title()
+    manager = manager
     file_list = os.listdir('.')
     for name in file_list:
         if is_valid(manager, name):
@@ -109,3 +115,4 @@ def move_files(manager, top_dir):
             os.rename(name, new_loc)
             print '%s moved to %s' % (name, new_loc)
     print 'Processing complete'
+
