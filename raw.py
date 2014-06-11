@@ -13,25 +13,35 @@ Example usage (assumes pwd is the parent directory of RawData):
     $ raw.extract_files(df, 'mgr_dir_name')
     $ raw.move_files('mgr_dir_name', '.')
 """
-
+# rewrite description/usage above
+# clean up docstrings in functions below
 
 import pandas as pd
 import os
+import sys
 import re
 
-def load_file(fileName, sheet_num=0):
+class Sheet(object):
+    def __init__(self, name, data):
+        self.name, self.data = name, data
+    def get_name(self):
+        return self.name
+    def get_data(self):
+        return self.data
+
+def load_file(fileName, header=0):
     '''
     Takes an Excel spreadsheet (loads first sheet by default)
-    returns a Pandas dataframe
+    returns a *dictionary* of Pandas dataframes
     '''
     try:
         data = pd.ExcelFile(fileName)
         sheets = data.sheet_names
-        return pd.read_excel(fileName, sheets[sheet_num])
+        return [Sheet(name, data.parse(name, header)) for name in sheets]
     except IOError as e:
         print "I/O error({0}): {1}".format(e.errno, e.strerror)
     except:
-        print "Unexpected error:", sys.ex_info()[0]
+        print "Unexpected error:", sys.exc_info()[0]
 
 def delete_file(fileName):
     '''
@@ -62,29 +72,67 @@ def build_dates(df, date_col):
     '''
     return pd.DatetimeIndex(df[date_col].unique())
 
-def extract_files(df, manager):
+def extract_files(sheet_array, manager):
     '''
-    Takes a Pandas dataframe and a column name containing the date
+    Takes a {sheet_name: dataframe} and a manager directory name
+    Returns None; applies process sheet to each worksheet separately
+    '''
+    for sheet in sheet_array:
+        process_sheet(sheet, manager)
+    print 'Processing ocmplete' 
+
+def is_assets(col_name):
+    '''
+    Takes a string col_name
+    Returns true if asset is contained in col_name
+    '''
+    pattern = re.compile('.*?[aA][sS][sS][eE][tT].*?')
+    return re.search(pattern, col_name) != None
+
+def is_sales(col_name):
+    '''
+    Takes a string col_name
+    Returns true if sale is contained in col_name
+    '''
+    pattern = re.compile('.*?[sS][aA][lL][eE].*?')
+    return re.search(pattern, col_name) != None
+
+def process_sheet(sheet, manager):
+    '''
+    Takes a Pandas dataframe and a manager directory name
     Returns None; splits files by unique date in date column,
                   saves them in the current directory
     '''
+    df, name = sheet.get_data(), sheet.get_name()
     date_col = find_date_col(df)
     dates = build_dates(df, date_col)
     manager = manager
     for date in dates:
         print 'Processing %s' % date
         temp_df = df[df[date_col] == date]
-        if 10 > date.month:
-            temp_name = '%s %s0%s.xlsx' % (manager, date.year, date.month)
-        else:
-            temp_name = '%s %s%s.xlsx' % (manager, date.year, date.month)
-        delete_file(temp_name)
-        temp_df.to_excel(temp_name, index=False)
+        save_period_files(temp_df, name, date, manager)
+
+def save_period_files(df, name, date, manager):
+    '''
+    Takes df, date & manager name
+    Returns None; saves a file '<manager> yyyymm.xlsx' for given date
+    Note: deletes file of name name before saving!
+    '''
+    if is_assets(name): measure = 'Asset'
+    elif is_sales(name): measure = 'Sales'
+    else:
+        raise BaseException("Sheet '%s' is neither Sales nor Assets" % name)
+    if 10 > date.month:
+        temp_name = '%s %s %s0%s.xlsx' % (manager, measure, date.year, date.month)
+    else:
+        temp_name = '%s %s %s%s.xlsx' % (manager, measure, date.year, date.month)
+    delete_file(temp_name)
+    df.to_excel(temp_name, index=False)
 
 def is_valid(manager, fileName):
     '''
     Takes manager name and file name
-    Returns Boolean if file name matches extract_files format
+    Returns Boolean if file name (roughly) matches extract_files format
     '''
     return fileName[0:len(manager)] == manager and \
             fileName[-5:] == '.xlsx'
@@ -97,8 +145,17 @@ def extract_file_date(fileName):
     pattern = re.compile("[\d]{5,6}")
     date = re.search(pattern, fileName).group()
     return date[:4], date[-2:]
-    
-def move_files(manager, top_dir):
+   
+def extract_file_type(name):
+    '''
+    Takes a file name
+    Returns 'Assets' or 'Sales' if string in file name
+    '''
+    if 'Asset' in name: return 'Asset'
+    elif 'Sales' in name: return 'Sales'
+    else: raise BaseException("Filename '%s' is neither Sales nor Assets")
+
+def move_files(manager, top_dir='.'):
     '''
     Takes a manager name and the directory containing the RawData folder
     Returns None; moves all xlsx files matching extract_files naming
@@ -109,8 +166,9 @@ def move_files(manager, top_dir):
     for name in file_list:
         if is_valid(manager, name):
             yr, mth = extract_file_date(name)
-            new_loc = '%s/RawData/%s/%s/%s/%s%sSales.xlsx' % \
-                    (top_dir, yr, mth, manager, yr, mth)
+            measure = extract_file_type(name)
+            new_loc = '%s/RawData/%s/%s/%s/%s%s%s.xlsx' % \
+                    (top_dir, yr, mth, manager, yr, mth, measure)
             delete_file(new_loc)
             os.rename(name, new_loc)
             print '%s moved to %s' % (name, new_loc)
