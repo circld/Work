@@ -1,20 +1,20 @@
 """
 Module with functions that can:
-    load_file(fileName, sheet_num=0) - load files into memory
-    extract_files(df, manager) - break multi-period data files 
-        into individual period files
+    load_file(fileName, header=0) - load files into memory
+    extract_files(sheet_array, manager) - break multi-period data files 
+        into individual period files. Handles multiple periods in one
+        sheet or multiple sheets. Detects whether sales or assets file.
     move_files(manager, top_dir) - move created files into appropriate
         file directory
 
 Example usage (assumes pwd is the parent directory of RawData):
     $ ipython
     $ import raw
-    $ df = raw.load_file('ex_file.xlsx')
-    $ raw.extract_files(df, 'mgr_dir_name')
+    $ sheet_array = raw.load_file('ex_file.xlsx', 1)  # header starts on 2nd row
+    $ raw.extract_files(sheet_array, 'mgr_dir_name')
     $ raw.move_files('mgr_dir_name', '.')
 """
-# rewrite description/usage above
-# clean up docstrings in functions below
+# edit to handle single file case (sheetname = 'Sheet1') for both sales & assets
 
 import pandas as pd
 import os
@@ -31,18 +31,31 @@ class Sheet(object):
 
 def load_file(fileName, header=0):
     '''
-    Takes an Excel spreadsheet (loads first sheet by default)
-    returns a *dictionary* of Pandas dataframes
+    Takes an Excel spreadsheet
+    Returns an array of Sheet objects containing worksheet name and data
     '''
     try:
         data = pd.ExcelFile(fileName)
         sheets = data.sheet_names
+        if is_single_sheet(sheets):
+            measure = raw_input('Is this a sales or assets file?\n>> ')
+            return [Sheet(measure, data.parse(sheets[0], header))]
         return [Sheet(name, data.parse(name, header)) for name in sheets]
     except IOError as e:
         print "I/O error({0}): {1}".format(e.errno, e.strerror)
     except:
         print "Unexpected error:", sys.exc_info()[0]
 
+def is_single_sheet(sheet_names):
+    '''
+    Takes a list of Excel worksheet names
+    Returns True if only a single sheet or all sheets have default names
+    '''
+    single_sheet = len(sheet_names) == 1
+    excel_default_sheets = sheet_names[0] == 'Sheet1' and sheet_names[1] == 'Sheet2' \
+        and sheet_names[2] == 'Sheet3'
+    return single_sheet or excel_default_sheets
+    
 def delete_file(fileName):
     '''
     Takes a file name
@@ -62,24 +75,26 @@ def find_date_col(df):
     date_cols = [col for col in columns if df[col].dtype == '<M8[ns]']
     if len(date_cols) > 1:
         raise ValueError('More than one DateTime column.')
+    elif len(date_cols) == 0:
+        raise ValueError('No date columns in dataframe.')
     else:
         return date_cols[0]
 
 def build_dates(df, date_col):
     '''
-    Takes a dataframe and a column name containing the date
+    Takes a dataframe and a column name containing Datetime data
     Returns a Pandas DatetimeIndex of all the unique dates in file
     '''
     return pd.DatetimeIndex(df[date_col].unique())
 
 def extract_files(sheet_array, manager):
     '''
-    Takes a {sheet_name: dataframe} and a manager directory name
-    Returns None; applies process sheet to each worksheet separately
+    Takes a Sheet object array and a manager directory name
+    Returns None; applies process_sheet to each Sheet separately
     '''
     for sheet in sheet_array:
         process_sheet(sheet, manager)
-    print 'Processing ocmplete' 
+    print 'Processing complete' 
 
 def is_assets(col_name):
     '''
@@ -99,7 +114,7 @@ def is_sales(col_name):
 
 def process_sheet(sheet, manager):
     '''
-    Takes a Pandas dataframe and a manager directory name
+    Takes a Sheet object and a manager directory name
     Returns None; splits files by unique date in date column,
                   saves them in the current directory
     '''
@@ -114,7 +129,7 @@ def process_sheet(sheet, manager):
 
 def save_period_files(df, name, date, manager):
     '''
-    Takes df, date & manager name
+    Takes a Pandas dataframe, date & manager name
     Returns None; saves a file '<manager> yyyymm.xlsx' for given date
     Note: deletes file of name name before saving!
     '''
@@ -149,7 +164,7 @@ def extract_file_date(fileName):
 def extract_file_type(name):
     '''
     Takes a file name
-    Returns 'Assets' or 'Sales' if string in file name
+    Returns a string ('Assets' or 'Sales') if string in file name
     '''
     if 'Asset' in name: return 'Asset'
     elif 'Sales' in name: return 'Sales'
@@ -157,11 +172,11 @@ def extract_file_type(name):
 
 def move_files(manager, top_dir='.'):
     '''
-    Takes a manager name and the directory containing the RawData folder
+    Takes a manager name and the directory name of the directory
+    containing the RawData folder
     Returns None; moves all xlsx files matching extract_files naming
                   convention and moves them into the appropriate folder
     '''
-    manager = manager
     file_list = os.listdir('.')
     for name in file_list:
         if is_valid(manager, name):
