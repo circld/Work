@@ -14,7 +14,6 @@ Example usage (assumes pwd is the parent directory of RawData):
     $ raw.extract_files(sheet_array, 'mgr_dir_name')
     $ raw.move_files('mgr_dir_name', '.')
 """
-# edit to handle single file case (sheetname = 'Sheet1') for both sales & assets
 
 import pandas as pd
 import os
