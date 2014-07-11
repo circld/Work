@@ -7,7 +7,7 @@ import re
 noisy_words = ['invest', 'asset', 'manager', 'partners', 'limited', 'capital'
                 , 'corp', 'associate', 'research', 'financial', 'bank', 'management'
                 , 'fund', 'group', 'plc', 'ltd', 'company', 'holding', 'service'
-                , 'portfolio', 'banco', 'gruppen'
+                , 'portfolio', 'banco', 'gruppe', 'investment', 'finance'
               ]
 # helper functions
 def match_lists(list1, list2, precision=90):
@@ -57,8 +57,8 @@ si['CleanManagerName'] = si['ManagerName'].map(fuzz.full_process)
 si_total['CleanManagerName'] = si_total['ManagerName'].map(fuzz.full_process)
 
 # remove common words with little signalling value
-ff['ManagerStem'] = ff['ManagerName'].map(remove_noisy_words)
-si['ManagerStem'] = si['ManagerName'].map(remove_noisy_words)
+ff['ManagerStem'] = ff['CleanManagerName'].map(remove_noisy_words)
+si['ManagerStem'] = si['CleanManagerName'].map(remove_noisy_words)
 si_total['ManagerStem'] = si_total['ManagerName'].map(remove_noisy_words)
 
 # create lists
@@ -69,11 +69,12 @@ si_total_list = [i for i in si_total['ManagerStem']]
 
 if __name__ == '__main__':
     # creating column with best match (according to precision)
-    ff['ManagerSI'] = ff.ManagerStem.map(lambda x : get_match(x, si_list, 80))
+    ff['ManagerSI'] = ff.ManagerStem.map(lambda x : get_match(x, si_list))
     # unmatched FF CB managers
     ff_only = ff[ff['ManagerSI'] == '']
-    ff_only['LocalManagerSI'] = ff_only.ManagerStem.map(lambda x : get_match(x, si_total_list, 80))
+    ff_only['LocalManagerSI'] = ff_only.ManagerStem.map(lambda x : get_match(x, si_total_list))
     ff_only.to_csv('Desktop/ff_only.csv', encoding='utf-8')
+    ff.to_csv('Desktop/ff_analysis.csv', encoding='utf-8')
     #ff_both, ff_only = match_lists(ff_list, si_list, 80)
     #si_both, si_only = match_lists(si_list, ff_list)
     #ff_total_both, ff_total_only = match_lists(ff_only.keys(), si_total_list)
