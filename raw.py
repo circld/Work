@@ -11,7 +11,7 @@ Example usage (assumes pwd is the parent directory of RawData):
     $ ipython
     $ import raw
     $ sheet_array = raw.load_file('ex_file.xlsx', 1)  # header starts on 2nd row
-    $ raw.extract_files(sheet_array, 'mgr_dir_name')
+    $ raw.extract_files(sheet_array, 'mgr_dir_name', 1, 0)  # startrow, startcol
     $ raw.move_files('mgr_dir_name', '.')
 """
 
