@@ -2,3 +2,6 @@ RawData/
 *.xlsx
 *.xlsm
 *.xls
+*.pyc
+*~
+*.swp

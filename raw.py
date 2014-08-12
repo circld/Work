@@ -86,13 +86,13 @@ def build_dates(df, date_col):
     '''
     return pd.DatetimeIndex(df[date_col].unique())
 
-def extract_files(sheet_array, manager):
+def extract_files(sheet_array, manager, startrow, startcol):
     '''
     Takes a Sheet object array and a manager directory name
     Returns None; applies process_sheet to each Sheet separately
     '''
     for sheet in sheet_array:
-        process_sheet(sheet, manager)
+        process_sheet(sheet, manager, startrow, startcol)
     print 'Processing complete' 
 
 def is_assets(col_name):
@@ -111,7 +111,7 @@ def is_sales(col_name):
     pattern = re.compile('.*?[sS][aA][lL][eE].*?')
     return re.search(pattern, col_name) != None
 
-def process_sheet(sheet, manager):
+def process_sheet(sheet, manager, startrow, startcol):
     '''
     Takes a Sheet object and a manager directory name
     Returns None; splits files by unique date in date column,
@@ -124,9 +124,9 @@ def process_sheet(sheet, manager):
     for date in dates:
         print 'Processing %s' % date
         temp_df = df[df[date_col] == date]
-        save_period_files(temp_df, name, date, manager)
+        save_period_files(temp_df, name, date, manager, startrow, startcol)
 
-def save_period_files(df, name, date, manager):
+def save_period_files(df, name, date, manager, startrow, startcol):
     '''
     Takes a Pandas dataframe, date & manager name
     Returns None; saves a file '<manager> yyyymm.xlsx' for given date
@@ -141,7 +141,7 @@ def save_period_files(df, name, date, manager):
     else:
         temp_name = '%s %s %s%s.xlsx' % (manager, measure, date.year, date.month)
     delete_file(temp_name)
-    df.to_excel(temp_name, index=False)
+    df.to_excel(temp_name, index=False, startrow=startrow, startcol=startcol)
 
 def is_valid(manager, fileName):
     '''
