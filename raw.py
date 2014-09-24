@@ -20,6 +20,9 @@ import os
 import sys
 import re
 
+
+# TODO: update docstrings to clearly label args
+# TODO: refactor into class?
 class Sheet(object):
     def __init__(self, name, data):
         self.name, self.data = name, data
@@ -86,7 +89,7 @@ def build_dates(df, date_col):
     '''
     return pd.DatetimeIndex(df[date_col].unique())
 
-def extract_files(sheet_array, manager, startrow, startcol):
+def extract_files(sheet_array, manager, startrow=0, startcol=0):
     '''
     Takes a Sheet object array and a manager directory name
     Returns None; applies process_sheet to each Sheet separately
@@ -181,10 +184,12 @@ def move_files(manager, top_dir='.'):
         if is_valid(manager, name):
             yr, mth = extract_file_date(name)
             measure = extract_file_type(name)
-            new_loc = '%s/RawData/%s/%s/%s/%s%s%s.xlsx' % \
-                    (top_dir, yr, mth, manager, yr, mth, measure)
-            delete_file(new_loc)
-            os.rename(name, new_loc)
+            new_loc = '%s/RawData/%s/%s/%s/' % (top_dir, yr, mth, manager)
+            new_name = '%s%s%s.xlsx' % (yr, mth, measure)
+            if not os.path.exists(new_loc):
+                os.makedirs(new_loc)
+                print 'Created directory %s' % new_loc
+            delete_file(new_loc + new_name)
+            os.rename(name, new_loc + new_name)
             print '%s moved to %s' % (name, new_loc)
     print 'Processing complete'
-
