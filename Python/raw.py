@@ -1,7 +1,7 @@
 """
 Module with functions that can:
     load_file(fileName, header=0) - load files into memory
-    extract_files(sheet_array, manager) - break multi-period data files 
+    extract_files(sheet_array, manager) - break multi-period data files
         into individual period files. Handles multiple periods in one
         sheet or multiple sheets. Detects whether sales or assets file.
     move_files(manager, top_dir) - move created files into appropriate
@@ -19,23 +19,33 @@ import pandas as pd
 import os
 import sys
 import re
+import Tkinter, tkFileDialog
 
+
+root = Tkinter.Tk()
+root.withdraw()
 
 # TODO: update docstrings to clearly label args
 # TODO: refactor into class?
+
 class Sheet(object):
     def __init__(self, name, data):
         self.name, self.data = name, data
+
     def get_name(self):
         return self.name
+
     def get_data(self):
         return self.data
 
-def load_file(fileName, header=0):
+
+def load_file(header=0):
     '''
     Takes an Excel spreadsheet
     Returns an array of Sheet objects containing worksheet name and data
     '''
+    fileName = tkFileDialog.askopenfilename(
+        filetypes=[('Excel', ('.xlsx', '.xls'))])
     try:
         data = pd.ExcelFile(fileName)
         sheets = data.sheet_names
@@ -48,6 +58,7 @@ def load_file(fileName, header=0):
     except:
         print "Unexpected error:", sys.exc_info()[0]
 
+
 def is_single_sheet(sheet_names):
     '''
     Takes a list of Excel worksheet names
@@ -57,7 +68,8 @@ def is_single_sheet(sheet_names):
     excel_default_sheets = sheet_names[0] == 'Sheet1' and sheet_names[1] == 'Sheet2' \
         and sheet_names[2] == 'Sheet3'
     return single_sheet or excel_default_sheets
-    
+
+
 def delete_file(fileName):
     '''
     Takes a file name
@@ -67,6 +79,7 @@ def delete_file(fileName):
         os.remove(fileName)
     except WindowsError:
         pass
+
 
 def find_date_col(df):
     '''
@@ -82,12 +95,14 @@ def find_date_col(df):
     else:
         return date_cols[0]
 
+
 def build_dates(df, date_col):
     '''
     Takes a dataframe and a column name containing Datetime data
     Returns a Pandas DatetimeIndex of all the unique dates in file
     '''
     return pd.DatetimeIndex(df[date_col].unique())
+
 
 def extract_files(sheet_array, manager, startrow=0, startcol=0):
     '''
@@ -96,7 +111,8 @@ def extract_files(sheet_array, manager, startrow=0, startcol=0):
     '''
     for sheet in sheet_array:
         process_sheet(sheet, manager, startrow, startcol)
-    print 'Processing complete' 
+    print 'Processing complete'
+
 
 def is_assets(col_name):
     '''
@@ -104,7 +120,8 @@ def is_assets(col_name):
     Returns true if asset is contained in col_name
     '''
     pattern = re.compile('.*?[aA][sS][sS][eE][tT].*?')
-    return re.search(pattern, col_name) != None
+    return re.search(pattern, col_name) is not None
+
 
 def is_sales(col_name):
     '''
@@ -112,7 +129,8 @@ def is_sales(col_name):
     Returns true if sale is contained in col_name
     '''
     pattern = re.compile('.*?[sS][aA][lL][eE].*?')
-    return re.search(pattern, col_name) != None
+    return re.search(pattern, col_name) is not None
+
 
 def process_sheet(sheet, manager, startrow, startcol):
     '''
@@ -128,6 +146,7 @@ def process_sheet(sheet, manager, startrow, startcol):
         print 'Processing %s' % date
         temp_df = df[df[date_col] == date]
         save_period_files(temp_df, name, date, manager, startrow, startcol)
+
 
 def save_period_files(df, name, date, manager, startrow, startcol):
     '''
@@ -146,6 +165,7 @@ def save_period_files(df, name, date, manager, startrow, startcol):
     delete_file(temp_name)
     df.to_excel(temp_name, index=False, startrow=startrow, startcol=startcol)
 
+
 def is_valid(manager, fileName):
     '''
     Takes manager name and file name
@@ -153,6 +173,7 @@ def is_valid(manager, fileName):
     '''
     return fileName[0:len(manager)] == manager and \
             fileName[-5:] == '.xlsx'
+
 
 def extract_file_date(fileName):
     '''
@@ -162,7 +183,8 @@ def extract_file_date(fileName):
     pattern = re.compile("[\d]{5,6}")
     date = re.search(pattern, fileName).group()
     return date[:4], date[-2:]
-   
+
+
 def extract_file_type(name):
     '''
     Takes a file name
@@ -171,6 +193,7 @@ def extract_file_type(name):
     if 'Asset' in name: return 'Asset'
     elif 'Sales' in name: return 'Sales'
     else: raise BaseException("Filename '%s' is neither Sales nor Assets")
+
 
 def move_files(manager, top_dir='.'):
     '''
