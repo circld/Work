@@ -213,11 +213,11 @@ def move_files(manager, top_dir='.'):
             new_name = '%s%s%s.xlsx' % (yr, mth, measure)
             if not os.path.exists(new_loc):
                 os.makedirs(new_loc)
-                print 'Created directory %s' % new_loc
+                print '\nCreated directory:\n%s' % new_loc
             delete_file(new_loc + new_name)
             os.rename(name, new_loc + new_name)
-            print '%s moved to %s' % (name, new_loc)
-    print 'Processing complete'
+            print "\n'%s' moved to:\n%s" % (name, new_loc)
+    print '\nProcessing complete'
 
 
 def check_args(user_in):
@@ -267,6 +267,8 @@ def main():
 
     # move files
     move_files(manager_name, top_path)
+
+    raw_input('\nPress any key to exit.')
 
 
 if __name__ == '__main__':
