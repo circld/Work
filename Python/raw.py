@@ -174,7 +174,7 @@ def is_valid(manager, fileName):
     Returns Boolean if file name (roughly) matches extract_files format
     """
     return fileName[0:len(manager)] == manager and \
-            fileName[-5:] == '.xlsx'
+        fileName[-5:] == '.xlsx'
 
 
 def extract_file_date(fileName):
@@ -259,7 +259,7 @@ def main():
     check_args(run_move_files)
 
     top_path = tkFileDialog.askdirectory()
-    if 'RawData' not in top_path:
+    if 'RawData' not in os.listdir(top_path):
         create_raw = raw_input('RawData is not in ' + top_path +
                                '. Do you wish to create it? (Y/N)\n>> ')
         if create_raw == 'N':
