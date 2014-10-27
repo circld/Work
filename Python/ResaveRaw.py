@@ -27,9 +27,6 @@ def main():
         selected files (by any combination of manager, month, and/or year).
         """
         )
-    # add & define command line args
-#    parser.add_argument('path',
-#                        help='Parent directory for all raw files.')
     parser.add_argument('--year', help='Resave all files for a given year.')
     parser.add_argument('--month', help='Resave all files for a given month.')
     parser.add_argument('--manager',
@@ -41,6 +38,7 @@ def main():
     root.withdraw()
     filepath = tkFileDialog.askdirectory(title='Please select the RawData' +
                                          ' directory.')
+    root.destroy()
 
     resave(filepath, args.year, args.month, args.manager)
 
