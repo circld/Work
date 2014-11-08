@@ -9,3 +9,6 @@
 SQL
 R
 Prefs
+Python/dist
+*.db
+*.pyd

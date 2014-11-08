@@ -13,7 +13,7 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
     
     For Each Valid In ValidNames
         RegEx.Pattern = ".{2,3}" & Valid & "$"
-        OneTrue = RegEx.test(ThisName)
+        OneTrue = RegEx.Test(ThisName)
         MatchSheetName = Valid
         If OneTrue = True Then Exit For
     Next Valid
@@ -72,6 +72,7 @@ Sub CreateReport()
                         "Manager Int'l&UK Latest 12 M", _
                         "Market Global Table TopBott", _
                         "Euro Net Flows By TR Quartil", _
+                        "3Yr Euro TR Quartile", _
                         "Global Bubbles Int'l Net Flo", _
                         "Morningstar Europe")
                         
@@ -163,6 +164,11 @@ Sub CreateReport()
     ' Euro Net Flows By TR Quartile
     DataBook.Worksheets("Euro Net Flows By TR Quartil").Activate
     Call Module3.EuroTRQuartileData
+    Call Module1.EuroTRQuartileChart
+    
+    ' Euro Net Flows By 3-Yr TR Q
+    DataBook.Worksheets("3Yr Euro TR Quartile").Activate
+    Call Module3.EuroTR3YrData(5)
     Call Module1.EuroTRQuartileChart
     
     ' Bubble charts

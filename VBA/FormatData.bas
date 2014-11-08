@@ -1,4 +1,44 @@
 Attribute VB_Name = "Module3"
+' Function for deleting qualifying rows
+Function RemoveTrue(Area As Variant) As Long
+    
+    Dim MySheet As Worksheet
+    Set MySheet = ActiveSheet
+    
+    With MySheet
+        .Range(Area(1, 1), Area(2, 2).Offset(0, 1)).AutoFilter _
+            Field:=Area(2, 2).Offset(0, 1).Column, _
+            Criteria1:=1
+        Application.DisplayAlerts = False
+        .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows.Delete
+        Application.DisplayAlerts = True
+        .AutoFilterMode = False
+    End With
+    
+End Function
+
+' Rescale return percentage to decimal format
+Sub Rescale(ByVal Rng As Range)
+
+    Dim MySheet As Worksheet
+    Dim TmpNum  As Range
+    
+    Set MySheet = ActiveSheet
+    Set TmpNum = Cells(1, Columns.Count)
+    
+    TmpNum.Value = 100
+    TmpNum.Copy
+    Rng.PasteSpecial Operation:=xlPasteSpecialOperationDivide
+    TmpNum.Value = 1
+    TmpNum.Copy
+    Rng.PasteSpecial Operation:=xlPasteSpecialOperationAdd
+    TmpNum.ClearContents
+    
+    ' To clear cells that were originally blank (now have value = 1)
+    Rng.Replace What:=1, Replacement:="", LookAt:=xlWhole
+
+End Sub
+
 ' Module for data transformations
 
 Sub EditHeader()
@@ -15,7 +55,7 @@ Sub EditHeader()
     RegEx.Pattern = ".*\[(.*)\].*"
     For Each Header In HeaderRange.Cells
         Set Matches = RegEx.Execute(Header.Value)
-        If RegEx.test(Header.Value) Then
+        If RegEx.Test(Header.Value) Then
             Header.Value = Matches(0).SubMatches(0)
         End If
     Next Header
@@ -489,15 +529,8 @@ Sub MTopBottomData()
     ' Get rid of all null/zero rows
     Range(Cells(2, Area(1, 2).Column + 1), Cells(Area(2, 2).Row, Area(2, 2).Column + 1)).Formula = _
         "=IF(SUM(RC[-3]:RC[-1]) = 0, 1, 0)"
-    With MySheet
-        .Range(Area(1, 1), Area(2, 2).Offset(0, 1)).AutoFilter _
-            Field:=Area(2, 2).Offset(0, 1).Column, _
-            Criteria1:=1
-        Application.DisplayAlerts = False
-        .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows.Delete
-        Application.DisplayAlerts = True
-    End With
-    
+    Call RemoveTrue(Area)
+        
     Columns(Area(1, 2).Column + 1).Delete
     
     ' Get country count & instantiate CMetaData items with names
@@ -611,15 +644,7 @@ Sub MktShareData()
     ' Get rid of all null/zero rows
     Range(Cells(2, Area(1, 2).Column + 1), Cells(Area(2, 2).Row, Area(2, 2).Column + 1)).Formula = _
         "=IF(SUM(RC[-3]:RC[-1]) = 0, 1, 0)"
-    With MySheet
-        .Range(Area(1, 1), Area(2, 2).Offset(0, 1)).AutoFilter _
-            Field:=Area(2, 2).Offset(0, 1).Column, _
-            Criteria1:=1
-        Application.DisplayAlerts = False
-        .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows.Delete
-        Application.DisplayAlerts = True
-        .AutoFilterMode = False
-    End With
+    Call RemoveTrue(Area)
     
     ' Redefine Area params since deleting rows changed data range
     Set Area(2, 1) = Area(1, 1).End(xlDown)
@@ -1476,7 +1501,8 @@ Sub EuroTRQuartileData()
     
     ' Clear old data
     Range(Area(1, 1).Offset(1, 0), Area(2, 2)).ClearContents
-    Range(Columns(2), Columns(1 + Months)).Delete
+    Range(Area(1, 1).Offset(0, Months + 1), Area(1, 1).Offset(0, 3 * Months)).Cut _
+        Range(Area(1, 1).Offset(0, 1), Area(1, 1).Offset(0, 2 * Months))
     
     ' Headers
     Set Headers = Rows(1)
@@ -1506,7 +1532,10 @@ Sub EuroTRQuartileData()
     Range(Columns(tmpRng(1, 1).Column), Columns(tmpRng.Columns.Count)).AutoFit
     
     ' Extra labels for clarity
-    Rows(1).Insert
+    Set tmpRng = Range(Cells(1, 1), Cells(1, 1).End(xlToRight).End(xlDown))
+    Range(Cells(2, 2), Cells(2, 2).Offset(3, 2 * Months - 1)).NumberFormat = "#,##0.00"
+    tmpRng.AutoFit
+    tmpRng.Cut tmpRng.Offset(1, 0)
     Cells(1, 2).Value = "Cross Border Net Sales"
     Cells(1, 2).Offset(0, Months).Value = "Local Net Sales"
     With Rows(1)
@@ -1516,3 +1545,144 @@ Sub EuroTRQuartileData()
     Cells(1, 1).Select
     
 End Sub
+
+
+Sub EuroTR3YrData(Optional Cutoff As Long)
+
+    ' This is a pre-processing step meant to be run prior to EuroTRQuartileData()
+    ' for 3-year trailing ATR data
+
+    Dim Area(2, 2), tmpRng, AvgTR   As Range
+    Dim MySheet                     As Worksheet
+    Dim i, Months, tmpCol           As Long
+    Dim SumCB(), SumLocal()         As Double
+    Dim CB, Loc, WAE, Quart         As Range
+    Dim Headers                     As Range
+    Dim F1, F2, L1, L2              As String
+    
+    
+    ' Preliminaries
+    Set MySheet = ActiveSheet
+    Months = 13
+    Set Area(1, 1) = Cells(1, 1)
+    Set Area(2, 1) = Area(1, 1).End(xlDown)
+    Set Area(1, 2) = Area(1, 1).End(xlToRight)
+    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    
+    ' Clear extraneous
+    Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count)).Delete
+    Range(Cells(1, 1), Cells(Rows.Count, Columns.Count)).ClearFormats
+    
+    ' Specify ranges for Monthly WAE, CB & Local measures
+    Set WAE = Range(Area(1, 1).Offset(1, 1), Area(2, 1).Offset(0, (Months - 1) * 4 + 1))
+    Set CB = Range(Area(1, 1).Offset(1, WAE.Columns.Count + 1), _
+        Area(2, 1).Offset(0, WAE.Columns.Count + Months))
+    Set Loc = Range(CB(1, 1).Offset(0, CB.Columns.Count), _
+        CB(1, 1).Offset(CB.Rows.Count - 1, CB.Columns.Count - 1 + Months))
+    ' First blank column
+    Set tmpRng = Range(Loc(1, 1).Offset(0, Loc.Columns.Count), _
+        Loc(1, 1).Offset(Loc.Rows.Count - 1, Loc.Columns.Count))
+    
+    ' Edit headers
+    Set Headers = Rows(1)
+    Headers.Select
+    Call EditHeader
+    
+    ' Drop records with too few TR data points (ie, cannot calc 3yr trailing for any month)
+    tmpRng(1, 1).Formula = "=IF(COUNT(" & _
+        WAE.Rows(1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False) _
+        & ") < 34 - " & Cutoff & ", 1, 0)"
+    tmpRng(1, 1).Copy tmpRng
+    
+    Call RemoveTrue(Area)
+    tmpRng.ClearContents
+        
+    ' Rescale return percentages to decimal (for GEOMEAN call below)
+    Call Rescale(WAE)
+    
+    ' Setup Start/Stop cells for Avg TR
+    F1 = WAE(1, 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+    F2 = WAE(1, 2).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+    L1 = WAE(1, 1).Offset(0, (Months - 1) * 3 - 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+    L2 = WAE(1, 1).Offset(0, (Months - 1) * 3 - 2).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+        
+    ' Calc 36-month trailing Avg TR (provided not missing 1st, last, & no more
+    ' than Cutoff missing values in remaining 34 months)
+    tmpRng(1, 1).Formula = "=IF(" & _
+        "AND(NOT(ISBLANK(" & F1 & ")), NOT(ISBLANK(" & L1 & ")), " & _
+            "COUNT(" & F2 & ":" & L2 & ") >= " & (Months - 1) * 3 - Cutoff & "), " & _
+        "GEOMEAN(" & F1 & ":" & L1 & "), " & Chr(34) & Chr(34) & ")"
+    
+    Set AvgTR = Range(tmpRng(1, 1), tmpRng(1, 1).Offset(tmpRng.Rows.Count - 1, Months))
+    tmpRng(1, 1).Copy AvgTR
+    
+    ' Remove formula
+    AvgTR.Copy
+    AvgTR.PasteSpecial Paste:=xlPasteValues
+    
+    ' Add (desc) Quartile at bottom (=QUARTILE.INC(IF(SUBTOTAL(...)...)...))
+        ' must be array equation (ctrl-shift-enter)
+    Set tmpRng = Range(AvgTR(1, 1).Offset(AvgTR.Rows.Count, 0), _
+        AvgTR(1, 1).Offset(AvgTR.Rows.Count + 3, AvgTR.Columns.Count - 1))
+    
+    F1 = AvgTR.Columns(1).AddressLocal(RowAbsolute:=True, ColumnAbsolute:=False)
+    For i = 1 To 4
+        tmpRng(i, 1).Formula = "=QUARTILE.INC(" & F1 & ", " & 5 - i & ")"
+    Next i
+    
+    tmpRng.Columns(1).Copy tmpRng
+    
+    ' Apply equation to assign quartile rank
+    F1 = AvgTR(1, 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+    L1 = tmpRng.Columns(1).AddressLocal(RowAbsolute:=True, ColumnAbsolute:=False)
+    WAE(1, 1).Formula = "=IFERROR(MATCH(" & F1 & ", " & L1 & ", -1), " & Chr(34) & Chr(34) & ")"
+    
+    Set Quart = Range(WAE.Columns(1), WAE.Columns(Months))
+    WAE(1, 1).Copy Quart
+    Quart.Copy
+    Quart.PasteSpecial Paste:=xlPasteValues
+        
+    ' Clean up
+    Set WAE = Nothing
+    Set tmpRng = Nothing
+    Set AvgTR = Nothing
+    
+    Range(Columns(Cells(1, 1).End(xlToRight).Column + 1), Columns(Columns.Count)).Clear
+    Range(Rows(Cells(1, 1).End(xlDown).Row + 1), Rows(Rows.Count)).Clear
+    
+    CB.Offset(-1, 0).Rows(1).Copy Quart.Offset(-1, 0).Rows(1)
+    CB.Offset(-1, 0).Rows(1).Copy Quart.Offset(-1, Months).Rows(1)
+    CB.Offset(-1, 0).Rows(1).Copy Quart.Offset(-1, 2 * Months).Rows(1)
+    CB.Copy Quart.Offset(0, Months)
+    Loc.Copy Quart.Offset(0, 2 * Months)
+    
+    Set CB = Nothing
+    Set Loc = Nothing
+
+    Range(Columns(Quart.Column + 3 * Months), Columns(Columns.Count)).Clear
+    Set Quart = Nothing
+
+    Call EuroTRQuartileData
+        
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
