@@ -1,3 +1,4 @@
+# extensions
 *.xlsx
 *.xlsm
 *.xls
@@ -6,9 +7,11 @@
 *~
 *.swp
 *.swo
-SQL
-R/CrossBordeR
-Prefs
-Python/dist
 *.db
 *.pyd
+
+# directories
+Python/dist/
+Python/OldScripts/
+SQL/
+Prefs/
