@@ -1,7 +1,7 @@
-Attribute VB_Name = "Module2"
-' Module2 containing the master procedures
-' Module3 contains all data transformation procs
-' Module1 contains all charting procs
+Attribute VB_Name = "BuildReport"
+' BuildReport containing the master procedures
+' FormatData contains all data transformation procs
+' CreateGraphs contains all charting procs
 
 Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
 
@@ -13,7 +13,7 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
     
     For Each Valid In ValidNames
         RegEx.Pattern = ".{2,3}" & Valid & "$"
-        OneTrue = RegEx.Test(ThisName)
+        OneTrue = RegEx.test(ThisName)
         MatchSheetName = Valid
         If OneTrue = True Then Exit For
     Next Valid
@@ -98,115 +98,115 @@ Sub CreateReport()
     
     ' Global Net vs Gross
     DataBook.Worksheets("Global Net vs Gross Sales").Activate
-    Call Module3.GlobalNetGrossData
-    Call Module1.GlobalNetGrossChart
+    Call FormatData.GlobalNetGrossData
+    Call CreateGraphs.GlobalNetGrossChart
     
     ' Global Gross Sales %
     DataBook.Worksheets("Global Gross Sales %").Activate
-    Call Module3.GlobalGrossPctData
-    Call Module1.GlobalGrossPctChart
+    Call FormatData.GlobalGrossPctData
+    Call CreateGraphs.GlobalGrossPctChart
     
     ' Net Sales vs Avg. Performance
     DataBook.Worksheets("Net Sales vs Avg. Performance").Activate
-    Call Module3.NetAvgPerfData
-    Call Module1.NetAvgPerfChart
+    Call FormatData.NetAvgPerfData
+    Call CreateGraphs.NetAvgPerfChart
     
     ' Redemption Rate Calculation
     DataBook.Worksheets("Redemption Rate Calculation").Activate
-    Call Module3.RedempCalcData
-    Call Module1.RedempCalcChart
+    Call FormatData.RedempCalcData
+    Call CreateGraphs.RedempCalcChart
     
     ' MS Rating by Region
     DataBook.Worksheets("Morningstar Ratings").Activate
-    Call Module3.MSRegionData
-    Call Module1.MSRegionChart
+    Call FormatData.MSRegionData
+    Call CreateGraphs.MSRegionChart
     
     ' Performance Global TopBottom Selling Cats
     DataBook.Worksheets("Performance Global TopBottom").Activate
-    Call Module3.PTopBottomData
+    Call FormatData.PTopBottomData
     ' No chart to create, table only
     
     ' Market Global TopBottom Selling Cats
     DataBook.Worksheets("Market Global TopBottom 5 Se").Activate
-    Call Module3.MTopBottomData
-    Call Module1.MTopBottomChart
+    Call FormatData.MTopBottomData
+    Call CreateGraphs.MTopBottomChart
     
     ' Market Global TopBottom Table
     DataBook.Worksheets("Market Global Table TopBott").Activate
-    Call Module3.MTopBottomTableData
-    Call Module1.MTopBottomTable
+    Call FormatData.MTopBottomTableData
+    Call CreateGraphs.MTopBottomTable
     
     ' Market Share by Manager
     DataBook.Worksheets("Market Share By Manager ").Activate
-    Call Module3.MktShareData
-    Call Module1.MktShareChart
+    Call FormatData.MktShareData
+    Call CreateGraphs.MktShareChart
     
     ' Local vs Cross-border Net Sales
     DataBook.Worksheets("Local vs Cross-border net sa").Activate
-    Call Module3.LvCBData
-    Call Module1.LvCBChart
+    Call FormatData.LvCBData
+    Call CreateGraphs.LvCBChart
     
     ' Manager Net Sales by Country
     DataBook.Worksheets("Manager Net Sales by Country").Activate
-    Call Module3.ManagerByCtryData
-    Call Module1.ManagerByCtryChart
+    Call FormatData.ManagerByCtryData
+    Call CreateGraphs.ManagerByCtryChart
     
     ' Global Gross Sales % by Region
     DataBook.Worksheets("Global Gross Sales % by Regi").Activate
-    Call Module3.GrossByRegionData
-    Call Module1.GrossByRegionChart
+    Call FormatData.GrossByRegionData
+    Call CreateGraphs.GrossByRegionChart
     
     ' 3 Equity Categories NetSales
     DataBook.Worksheets("3 Equity Categories NetSales").Activate
-    Call Module3.EquityCatSalesData
-    Call Module1.EquityCatSalesChart
+    Call FormatData.EquityCatSalesData
+    Call CreateGraphs.EquityCatSalesChart
     
     ' Euro Net Flows By TR Quartile
     DataBook.Worksheets("Euro Net Flows By TR Quartil").Activate
-    Call Module3.EuroTRQuartileData
-    Call Module1.EuroTRQuartileChart
+    Call FormatData.EuroTRQuartileData
+    Call CreateGraphs.EuroTRQuartileChart
     
     ' Euro Net Flows By 3-Yr TR Q
     DataBook.Worksheets("3Yr Euro TR Quartile").Activate
-    Call Module3.EuroTR3YrData(5)
-    Call Module1.EuroTRQuartileChart
+    Call FormatData.TrailTRData(3, 5)
+    Call CreateGraphs.EuroTRQuartileChart
     
     ' Bubble charts
     
     ' Global Bubbles
     DataBook.Worksheets("Global Bubbles").Activate
-    Call Module3.BubbleData  ' general bubble data proc
-    Call Module1.BubbleChart("Asset-Weighted YTD and 1-Year Total Return vs 3-Month Trailing Net Flows", _
+    Call FormatData.BubbleData  ' general bubble data proc
+    Call CreateGraphs.BubbleChart("Asset-Weighted YTD and 1-Year Total Return vs 3-Month Trailing Net Flows", _
         "1-Year Return in Euro Weighted Average", _
         "YTD TR in Euro Weighted Average")
     
     ' Global Bubbles Latest Qr
     DataBook.Worksheets("Global Bubbles Latest Qr").Activate
-    Call Module3.BubbleData
-    Call Module1.BubbleChart("Asset-Weighted 3-Year Total Return and Volatility vs. Latest Quarter Net Flows", _
+    Call FormatData.BubbleData
+    Call CreateGraphs.BubbleChart("Asset-Weighted 3-Year Total Return and Volatility vs. Latest Quarter Net Flows", _
         BubbleLab(1), BubbleLab(2))
     
     ' Global Bubbles Prior Year Qr
     DataBook.Worksheets("Global Bubbles Prior Qr 3").Activate
-    Call Module3.BubbleData  ' general bubble data proc
-    Call Module1.BubbleChart("Asset-Weighted 3-Year Total Return and Volatility vs Net Flows This Quarter Last Year", _
+    Call FormatData.BubbleData  ' general bubble data proc
+    Call CreateGraphs.BubbleChart("Asset-Weighted 3-Year Total Return and Volatility vs Net Flows This Quarter Last Year", _
         BubbleLab(1), BubbleLab(2))
     
     ' Global Bubbles Latest 12 Mth
     DataBook.Worksheets("Global Bubbles Latest 12 Mth").Activate
-    Call Module3.BubbleData
-    Call Module1.BubbleChart("Asset-Weighted 3-Year Total Return and Volatility vs. 12 Month to Latest Month Net Flows", _
+    Call FormatData.BubbleData
+    Call CreateGraphs.BubbleChart("Asset-Weighted 3-Year Total Return and Volatility vs. 12 Month to Latest Month Net Flows", _
         BubbleLab(1), BubbleLab(2))
     
     ' Manager Bubbles Latest 12 Mth
     DataBook.Worksheets("Manager Bubbles Latest 12 Mt").Activate
-    Call Module3.BubbleData(20)  ' Top 20
-    Call Module1.ManagerBubbleChart("Top 20 Manager By Trailing 12-Month Net Flows")
+    Call FormatData.BubbleData(20)  ' Top 20
+    Call CreateGraphs.ManagerBubbleChart("Top 20 Manager By Trailing 12-Month Net Flows")
     
     ' Int'l & UK Bubbles Latest 12 Mth
     DataBook.Worksheets("Int'l&UK Bubbles Latest 12 M").Activate
-    Call Module3.BubbleData
-    Call Module1.BubbleChart("International & UK:" & vbCrLf & _
+    Call FormatData.BubbleData
+    Call CreateGraphs.BubbleChart("International & UK:" & vbCrLf & _
         "Asset-Weighted 3-Year Total Return and Volatility vs. 12 Month to Latest Month Net Flows", _
         BubbleLab(1), BubbleLab(2))  ' vbCrLf = new line character
     ' Ensure title is in one merged cell
@@ -216,20 +216,20 @@ Sub CreateReport()
         
     ' Manager Int'l & UK Latest 12 M
     DataBook.Worksheets("Manager Int'l&UK Latest 12 M").Activate
-    Call Module3.BubbleData(20)  ' Top 20
-    Call Module1.ManagerBubbleChart("International & UK:" & vbCrLf & _
+    Call FormatData.BubbleData(20)  ' Top 20
+    Call CreateGraphs.ManagerBubbleChart("International & UK:" & vbCrLf & _
         "Top 20 Managers By Trailing 12-Month Net Flows")
     
     ' Int'l (GL) Bubbles
     DataBook.Worksheets("Global Bubbles Int'l Net Flo").Activate
-    Call Module3.BubbleData(10)
-    Call Module1.BubbleChart("Asset-Weighted 3 Year International Total Return and Volatility vs YTD Net Sales", _
+    Call FormatData.BubbleData(10)
+    Call CreateGraphs.BubbleChart("Asset-Weighted 3 Year International Total Return and Volatility vs YTD Net Sales", _
         BubbleLab(1), BubbleLab(2))
         
     ' MS Europe CB v Local
     DataBook.Worksheets("Morningstar Europe").Activate
-    Call Module3.MSRegionData(1)
-    Call Module1.MSRegionChart("cb v local")
+    Call FormatData.MSRegionData(1)
+    Call CreateGraphs.MSRegionChart("cb v local")
 
     ' Save file if it does not already exist
     If Dir(FPath & "\" & FName) <> "" Then

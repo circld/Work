@@ -1,4 +1,4 @@
-Attribute VB_Name = "Module1"
+Attribute VB_Name = "CreateGraphs"
 ' Module with all chart-producing procedures
 Option Explicit
 
@@ -231,7 +231,6 @@ Sub NetAvgPerfChart()
     Dim ChartHeight, ChartWidth As Long
     
     Set Series1 = Range("A1:N3")
-    Series1.Select
     
     Set Series2 = Range("O2:AA3")
     
@@ -373,7 +372,8 @@ Sub RedempCalcChart()
     Dim StartCell, ChartLoc     As Range
     Dim ChartHeight, ChartWidth As Long
     
-    Set Series1 = Range("A20:N22")
+    
+    Set Series1 = Range("B14:N18")
     
     Set MySheet = ActiveSheet
     Set MyChart = MySheet.Shapes.AddChart(xlColumnClustered).Chart
@@ -385,12 +385,18 @@ Sub RedempCalcChart()
     Set ChartLoc = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     With MyChart
-        
+    
+        .SetSourceData Source:=Series1, PlotBy:=xlRows
         ' Prepare data & presentation
-        .SetSourceData Source:=Series1
-        .ChartGroups(1).GapWidth = 80
-        .FullSeriesCollection(1).XValues = _
-            "='" & MySheet.Name & "'!B1:N1"
+        For i = 1 To 4
+            With MyChart.SeriesCollection(i)
+                .Name = Series1(i, 1).Offset(0, -1)
+                .Values = Series1.Rows(i)
+                .XValues = "='" & MySheet.Name & "'!B1:N1"
+            End With
+            .SeriesCollection(i).ChartType = xlLine
+        Next i
+        .SeriesCollection(5).Name = "Total"
 
         ' Set Location
         With .Parent
@@ -400,39 +406,56 @@ Sub RedempCalcChart()
             .Width = ChartLoc.Width
         End With
 
-        ' Adjust axes (nb: values already in millions)
-        With MyChart.Axes(xlValue, xlPrimary)
+        ' Adjust axes
+        With .Axes(xlValue, xlPrimary)
             .MajorGridlines.Delete
             .HasDisplayUnitLabel = False
             .TickLabels.Font.Size = 12
+            .TickLabels.NumberFormat = "0%"
         End With
         
-        MyChart.Axes(xlCategory).TickLabels.Font.Size = 11
-        MyChart.Axes(xlCategory).TickLabels.Orientation = 25
+        .Axes(xlCategory).TickLabels.Font.Size = 11
+        .Axes(xlCategory).TickLabels.Orientation = 25
         
         ' Colors
         ' Navy
-        With MyChart.SeriesCollection(1).Format.Fill
+        With .SeriesCollection(1).Format.Line
             .Visible = msoTrue
             .ForeColor.ObjectThemeColor = msoThemeColorText2
             .ForeColor.TintAndShade = 0
             .ForeColor.Brightness = -0.25
             .Transparency = 0
-            .Solid
         End With
         
         ' Light Blue
-        With MyChart.SeriesCollection(2).Format.Fill
+        With .SeriesCollection(2).Format.Line
             .Visible = msoTrue
             .ForeColor.ObjectThemeColor = msoThemeColorAccent1
             .ForeColor.TintAndShade = 0
             .ForeColor.Brightness = 0.400000006
             .Transparency = 0
-            .Solid
+        End With
+        
+        ' Medium Blue
+        With .SeriesCollection(3).Format.Line
+            .Visible = msoTrue
+            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
+            .ForeColor.TintAndShade = 0
+            .ForeColor.Brightness = -0.25
+            .Transparency = 0
+        End With
+        
+        ' Dark Blue
+        With .SeriesCollection(4).Format.Line
+            .Visible = msoTrue
+            .ForeColor.ObjectThemeColor = msoThemeColorText2
+            .ForeColor.TintAndShade = 0
+            .ForeColor.Brightness = 0.400000006
+            .Transparency = 0
         End With
         
         ' Stripey
-        With MyChart.SeriesCollection(3).Format.Fill
+        With .SeriesCollection(5).Format.Fill
             .Visible = msoTrue
             .Patterned msoPatternLightUpwardDiagonal
             .ForeColor.ObjectThemeColor = msoThemeColorBackground1
@@ -816,13 +839,15 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
                     
                     .MajorGridlines.Delete
                     .TickLabels.Font.Size = 14
-                    .TickLabels.NumberFormat = "0%"
                     
                     If AxisType = xlCategory Then
                         .HasTitle = True
+                        .TickLabels.NumberFormat = "0.0%"
                         .AxisTitle.Font.Size = 12
                         .AxisTitle.text = xLabelText
                         .AxisTitle.Font.Bold = False
+                    Else
+                        .TickLabels.NumberFormat = "0%"
                     End If
                                     
                 End With
@@ -1483,7 +1508,6 @@ Sub ManagerBubbleChart(Optional TitleText As String = "")
             ' Adjust for squished plot area
             Application.DisplayAlerts = False
             With .PlotArea
-                
                 .Top = 20
                 .Left = 0
                 .Width = MyChart.ChartArea.Width

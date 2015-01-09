@@ -1,4 +1,4 @@
-Attribute VB_Name = "Module3"
+Attribute VB_Name = "FormatData"
 ' Function for deleting qualifying rows
 Function RemoveTrue(Area As Variant) As Long
     
@@ -55,7 +55,7 @@ Sub EditHeader()
     RegEx.Pattern = ".*\[(.*)\].*"
     For Each Header In HeaderRange.Cells
         Set Matches = RegEx.Execute(Header.Value)
-        If RegEx.Test(Header.Value) Then
+        If RegEx.test(Header.Value) Then
             Header.Value = Matches(0).SubMatches(0)
         End If
     Next Header
@@ -296,7 +296,8 @@ Sub RedempCalcData()
     Dim Months      As Integer
     Dim MySheet     As Worksheet
     Dim FirstRow, LastRow, FirstCol, LastCol   As Long
-    Dim Net, Gross, Headers, Categories        As Range
+    Dim Redemp, Assets, Headers, Categories    As Range
+    Dim i           As Long
     
     Set MySheet = ActiveSheet
     MySheet.Cells.UnMerge
@@ -330,33 +331,36 @@ Sub RedempCalcData()
     Rows(6).Delete  ' no Real Estate
     Range(Rows(LastRow), Rows(Rows.Count)).Delete
     Set Categories = Range(Cells(FirstRow, 1), Cells(FirstRow, 1).End(xlDown))
-    Categories.Select
-    For i = 1 To 20
+    
+    For i = 1 To 13
         Categories.Copy Range(Cells(i + 1, 1), Cells(i + 5, 1))
         Set Categories = Range(Cells(i + 1, 1), Cells(i + 5, 1))
         i = i + 5
     Next i
 
-    Set Gross = Range(Cells(FirstRow, LastCol + 1), _
+    ' Move assets to range below redemptions
+    Set Assets = Range(Cells(FirstRow, LastCol + 1), _
         Cells(FirstRow + 5, 2 * LastCol - 1))
-    Range(Cells(FirstRow + 6, FirstCol), Cells(FirstRow + 9, LastCol)).Select
-    Gross.Cut Range(Cells(FirstRow + 6, FirstCol), Cells(FirstRow + 9, LastCol))
+    Assets.Cut Range(Cells(FirstRow + 6, FirstCol), Cells(FirstRow + 9, LastCol))
     
     ' Label
-    Range("A1").Value = "Net"
-    Range("A7").Value = "Gross"
-    Range("A13").Value = "Redemptions"
-    Range("A19").Value = "Redemptions %"
-        
-    ' Add Redemptions (Gross - Net) and Redemption %
-    Range(Cells(14, FirstCol), Cells(17, LastCol)).Formula = "=R[-6]C[0] - R[-12]C[0]"
-    Range(Cells(20, FirstCol), Cells(23, LastCol)).Formula = _
-        "=IF(R[-6]C[0] > 0, R[-6]C[0] / R[-12]C[0], 0)"
+    Range("A1").Value = "Redemptions"
+    Range("A7").Value = "Assets"
+    Range("A13").Value = "Redemptions rate"
+    
+    ' Add totals
+    Cells(6, 2).Formula = "=SUM(R[-4]C[0]:R[-1]C[0])"
+    For i = 1 To 2
+        Cells(6, 2).Copy Range(Cells(6 * i, FirstCol), Cells(6 * i, LastCol))
+    Next i
+    
+    ' Add Redemptions rate (Redemp / Assets)
+    Range(Cells(14, FirstCol), Cells(18, LastCol)).Formula = "=R[-12]C[0] / R[-6]C[0]"
     
     ' Delete extraneous data & format
     Range(Cells(FirstRow - 1, LastCol + 1), Cells(Rows.Count, Columns.Count)).Delete
-    Range(Cells(FirstRow, FirstCol), Cells(17, LastCol)).NumberFormat = "#,##0.00_);-#,##0.00"
-    Range(Cells(20, FirstCol), Cells(23, LastCol)).NumberFormat = "0%"
+    Range(Cells(FirstRow, FirstCol), Cells(12, LastCol)).NumberFormat = "#,##0.00_);-#,##0.00"
+    Range(Cells(14, FirstCol), Cells(18, LastCol)).NumberFormat = "0.00%;-0.00%"
     Range(Columns(1), Columns(Cells(1, 2).End(xlToRight).Column)).AutoFit
     
     Range("A1").Select
@@ -1534,7 +1538,7 @@ Sub EuroTRQuartileData()
     ' Extra labels for clarity
     Set tmpRng = Range(Cells(1, 1), Cells(1, 1).End(xlToRight).End(xlDown))
     Range(Cells(2, 2), Cells(2, 2).Offset(3, 2 * Months - 1)).NumberFormat = "#,##0.00"
-    tmpRng.AutoFit
+    tmpRng.Columns.AutoFit
     tmpRng.Cut tmpRng.Offset(1, 0)
     Cells(1, 2).Value = "Cross Border Net Sales"
     Cells(1, 2).Offset(0, Months).Value = "Local Net Sales"
@@ -1547,10 +1551,12 @@ Sub EuroTRQuartileData()
 End Sub
 
 
-Sub EuroTR3YrData(Optional Cutoff As Long)
+Sub TrailTRData(Yrs As Long, Optional Cutoff As Long)
 
     ' This is a pre-processing step meant to be run prior to EuroTRQuartileData()
-    ' for 3-year trailing ATR data
+    ' for <Yrs>-year trailing ATR data
+    ' Yrs: trailing period for TR geo avg to be calculated over
+    ' Cutoff: max number of missing obs in TR trailing period that is acceptable
 
     Dim Area(2, 2), tmpRng, AvgTR   As Range
     Dim MySheet                     As Worksheet
@@ -1574,7 +1580,7 @@ Sub EuroTR3YrData(Optional Cutoff As Long)
     Range(Cells(1, 1), Cells(Rows.Count, Columns.Count)).ClearFormats
     
     ' Specify ranges for Monthly WAE, CB & Local measures
-    Set WAE = Range(Area(1, 1).Offset(1, 1), Area(2, 1).Offset(0, (Months - 1) * 4 + 1))
+    Set WAE = Range(Area(1, 1).Offset(1, 1), Area(2, 1).Offset(0, (Months - 1) * (Yrs + 1) + 1))
     Set CB = Range(Area(1, 1).Offset(1, WAE.Columns.Count + 1), _
         Area(2, 1).Offset(0, WAE.Columns.Count + Months))
     Set Loc = Range(CB(1, 1).Offset(0, CB.Columns.Count), _
@@ -1591,7 +1597,7 @@ Sub EuroTR3YrData(Optional Cutoff As Long)
     ' Drop records with too few TR data points (ie, cannot calc 3yr trailing for any month)
     tmpRng(1, 1).Formula = "=IF(COUNT(" & _
         WAE.Rows(1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False) _
-        & ") < 34 - " & Cutoff & ", 1, 0)"
+        & ") < (" & Yrs * Months & "), 1, 0)"
     tmpRng(1, 1).Copy tmpRng
     
     Call RemoveTrue(Area)
@@ -1603,14 +1609,14 @@ Sub EuroTR3YrData(Optional Cutoff As Long)
     ' Setup Start/Stop cells for Avg TR
     F1 = WAE(1, 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
     F2 = WAE(1, 2).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
-    L1 = WAE(1, 1).Offset(0, (Months - 1) * 3 - 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
-    L2 = WAE(1, 1).Offset(0, (Months - 1) * 3 - 2).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
-        
+    L1 = WAE(1, 1).Offset(0, (Months - 1) * Yrs - 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+    L2 = WAE(1, 1).Offset(0, (Months - 1) * Yrs - 2).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+    
     ' Calc 36-month trailing Avg TR (provided not missing 1st, last, & no more
     ' than Cutoff missing values in remaining 34 months)
     tmpRng(1, 1).Formula = "=IF(" & _
         "AND(NOT(ISBLANK(" & F1 & ")), NOT(ISBLANK(" & L1 & ")), " & _
-            "COUNT(" & F2 & ":" & L2 & ") >= " & (Months - 1) * 3 - Cutoff & "), " & _
+            "COUNT(" & F2 & ":" & L2 & ") >= " & (Months - 1) * Yrs - 2 - Cutoff & "), " & _
         "GEOMEAN(" & F1 & ":" & L1 & "), " & Chr(34) & Chr(34) & ")"
     
     Set AvgTR = Range(tmpRng(1, 1), tmpRng(1, 1).Offset(tmpRng.Rows.Count - 1, Months))
@@ -1665,8 +1671,6 @@ Sub EuroTR3YrData(Optional Cutoff As Long)
     Call EuroTRQuartileData
         
 End Sub
-
-
 
 
 
