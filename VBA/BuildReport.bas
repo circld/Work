@@ -74,9 +74,10 @@ Sub CreateReport()
                         "Euro Net Flows By TR Quartil", _
                         "3Yr Euro TR Quartile", _
                         "Global Bubbles Int'l Net Flo", _
-                        "Morningstar Europe")
+                        "Morningstar Europe", _
+                        "Investment Type Gross Sales ")
                         
-    
+    ' Output file path & name (with dates)
     DateTime = Now
     mBefore = DateAdd("m", -1, Now)
     FileDate = Format(DateTime, "yymmdd")
@@ -101,10 +102,10 @@ Sub CreateReport()
     Call FormatData.GlobalNetGrossData
     Call CreateGraphs.GlobalNetGrossChart
     
-    ' Global Gross Sales %
+    ' Global Gross Sales by Category
     DataBook.Worksheets("Global Gross Sales %").Activate
-    Call FormatData.GlobalGrossPctData
-    Call CreateGraphs.GlobalGrossPctChart
+    Call FormatData.GlobalGrossCatData
+    Call CreateGraphs.GlobalGrossCatChart
     
     ' Net Sales vs Avg. Performance
     DataBook.Worksheets("Net Sales vs Avg. Performance").Activate
@@ -170,8 +171,25 @@ Sub CreateReport()
     DataBook.Worksheets("3Yr Euro TR Quartile").Activate
     Call FormatData.TrailTRData(3, 5)
     Call CreateGraphs.EuroTRQuartileChart
+        
+    ' Manager Int'l & UK Latest 12 M
+    DataBook.Worksheets("Manager Int'l&UK Latest 12 M").Activate
+    Call FormatData.BubbleData(20)  ' Top 20
+    Call CreateGraphs.ManagerBubbleChart("International & UK:" & vbCrLf & _
+        "Top 20 Managers By Trailing 12-Month Net Flows")
+
+    ' MS Europe CB v Local
+    DataBook.Worksheets("Morningstar Europe").Activate
+    Call FormatData.MSRegionData(1)
+    Call CreateGraphs.MSRegionChart("cb v local")
     
-    ' Bubble charts
+    ' Investment Type by Country
+    DataBook.Worksheets("Investment Type Gross Sales ").Activate
+    Call FormatData.InvTypeGrossData
+    Call CreateGraphs.InvTypeGrossChart
+    
+    
+    ' Bubble charts -------------------------------------------------------------------------------
     
     ' Global Bubbles
     DataBook.Worksheets("Global Bubbles").Activate
@@ -214,22 +232,12 @@ Sub CreateReport()
         .Range(Cells(1, Columns.Count).End(xlToLeft), Cells(1, Columns.Count).End(xlToLeft).Offset(0, 6)).Merge
     End With
         
-    ' Manager Int'l & UK Latest 12 M
-    DataBook.Worksheets("Manager Int'l&UK Latest 12 M").Activate
-    Call FormatData.BubbleData(20)  ' Top 20
-    Call CreateGraphs.ManagerBubbleChart("International & UK:" & vbCrLf & _
-        "Top 20 Managers By Trailing 12-Month Net Flows")
-    
     ' Int'l (GL) Bubbles
     DataBook.Worksheets("Global Bubbles Int'l Net Flo").Activate
     Call FormatData.BubbleData(10)
     Call CreateGraphs.BubbleChart("Asset-Weighted 3 Year International Total Return and Volatility vs YTD Net Sales", _
         BubbleLab(1), BubbleLab(2))
-        
-    ' MS Europe CB v Local
-    DataBook.Worksheets("Morningstar Europe").Activate
-    Call FormatData.MSRegionData(1)
-    Call CreateGraphs.MSRegionChart("cb v local")
+    
 
     ' Save file if it does not already exist
     If Dir(FPath & "\" & FName) <> "" Then

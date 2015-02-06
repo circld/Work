@@ -1,4 +1,35 @@
 Attribute VB_Name = "FormatData"
+' Requires (Tools/References)
+'   Microsoft Scripting Runtime
+'   Microsoft VBScript Regular Expressions
+
+' Function for mapping country names to abbreviations
+Function AbbrCtryName(ByVal NameRng As Range)
+
+    Dim CountryNames    As New Scripting.Dictionary
+    Dim Country         As Variant
+
+    ' Map country names to abbreviations
+    CountryNames.Add "Italy", "ITA"
+    CountryNames.Add "Switzerland", "SWI"
+    CountryNames.Add "UK", "UK"
+    CountryNames.Add "France", "FRA"
+    CountryNames.Add "Hong Kong", "HK"
+    CountryNames.Add "Germany", "GER"
+    CountryNames.Add "Taiwan", "TWN"
+    CountryNames.Add "Singapore", "SIN"
+    CountryNames.Add "Spain", "SPA"
+    CountryNames.Add "Luxembourg", "LUX"
+    CountryNames.Add "Netherlands", "NETH"
+    CountryNames.Add "Belgium", "BEL"
+    CountryNames.Add "Benelux", "Benelux"
+    
+    For Each Country In NameRng.Columns(1).Cells
+        Country.Value = CountryNames(Country.Value)
+    Next Country
+
+End Function
+
 ' Function for deleting qualifying rows
 Function RemoveTrue(Area As Variant) As Long
     
@@ -18,7 +49,7 @@ Function RemoveTrue(Area As Variant) As Long
 End Function
 
 ' Rescale return percentage to decimal format
-Sub Rescale(ByVal Rng As Range)
+Sub Rescale(ByVal rng As Range)
 
     Dim MySheet As Worksheet
     Dim TmpNum  As Range
@@ -28,20 +59,20 @@ Sub Rescale(ByVal Rng As Range)
     
     TmpNum.Value = 100
     TmpNum.Copy
-    Rng.PasteSpecial Operation:=xlPasteSpecialOperationDivide
+    rng.PasteSpecial Operation:=xlPasteSpecialOperationDivide
     TmpNum.Value = 1
     TmpNum.Copy
-    Rng.PasteSpecial Operation:=xlPasteSpecialOperationAdd
+    rng.PasteSpecial Operation:=xlPasteSpecialOperationAdd
     TmpNum.ClearContents
     
     ' To clear cells that were originally blank (now have value = 1)
-    Rng.Replace What:=1, Replacement:="", LookAt:=xlWhole
+    rng.Replace What:=1, Replacement:="", LookAt:=xlWhole
 
 End Sub
 
 ' Module for data transformations
 
-Sub EditHeader()
+Sub EditHeader(Optional Prefix As String, Optional Suffix As String)
 
     Dim ActSheet    As Worksheet
     Dim HeaderRange As Range
@@ -56,40 +87,69 @@ Sub EditHeader()
     For Each Header In HeaderRange.Cells
         Set Matches = RegEx.Execute(Header.Value)
         If RegEx.test(Header.Value) Then
-            Header.Value = Matches(0).SubMatches(0)
+            Header.Value = Join(Array(Prefix, Matches(0).SubMatches(0), Suffix), " ")
+            Header.Value = LTrim(RTrim(Header.Value))
         End If
     Next Header
     
 End Sub
 
-' Procedure to reorganize data relying on Dash output format patterns
-' Is this necessary--does this add value?
-Function OrganizeData(Measures As Long, Optional Periods As Long = 13, Optional GroupingLevels As Long = 1) As Variant
-    
-    Dim MySheet                         As Worksheet
-    ' Rething this: what parameters do we actually need?
-    Dim cType(1 To 4), ColF(), ColL()   As Long
-    Dim RowF, RowL                      As Long
-    Dim i                               As Long
-    Dim Item                            As Variant
-    
-    ' Define vars
-    Set MySheet = ActiveSheet
-    RowF = 2
-    RowL = Cells(1, 1).End(xlDown).Row
-    ColF = 1 + GroupingLevels
-    ColL = Cells(1, 1).End(xlToRight).Column
-    cType(1) = 5
-    ReDim ColF(1 To Group)
-    
-    i = 1
-    For Each Item In Array(RowF, RowL, ColF, ColL)
-        cType(i) = Item
-        i = i + 1
-    Next Item
 
-    OrganizeData = cType
-End Function
+' To sum columns, e.g. months to quarter Aggregate(NumCols:=3, func:="SUM")
+Sub Aggregate(ByVal NumCols As Long, ByVal func As String)
+
+    Dim DataRng                 As Range
+    Dim Area(2, 2)              As Range
+    Dim tmpRng                  As Range
+    Dim step, col, reps, iter   As Long
+    Dim startCell, endCell      As String
+    Dim remainder               As Integer
+    
+    
+    ' Define data area
+    Set DataRng = Selection
+    
+    ' Set temporary data destination
+    Set tmpRng = Range(Cells(DataRng.Rows(1).Row, Columns.Count), _
+                       Cells(DataRng.Rows(DataRng.Rows.Count).Row, Columns.Count))
+    
+    ' Aggregate
+    iter = 1
+    remainder = DataRng.Columns.Count Mod NumCols
+    reps = (DataRng.Columns.Count - remainder) / NumCols
+    For step = 1 To reps * NumCols
+        
+        ' Aggregation function
+        startCell = DataRng(1, step).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+        endCell = DataRng(1, step).Offset(0, NumCols - 1).AddressLocal(RowAbsolute:=False, ColumnAbsolute:=False)
+        tmpRng(1, 1).Formula = "=" & func & "(" & startCell & ":" & endCell & ")"
+        
+        tmpRng(1, 1).Copy tmpRng
+        tmpRng.Copy
+        tmpRng.PasteSpecial xlPasteValues
+        
+        ' Clear columns just aggregated
+        Range(DataRng.Columns(step), DataRng.Columns(step + NumCols - 1)).ClearContents
+ 
+        ' Move data
+        tmpRng.Copy DataRng.Columns(iter)
+               
+        step = step + NumCols - 1
+        iter = iter + 1
+        
+    Next step
+
+    ' Clear unaggregated data included in selection
+    If remainder > 0 Then
+        Range(DataRng.Columns(DataRng.Columns.Count + 1 - remainder), _
+              DataRng.Columns(DataRng.Columns.Count)).ClearContents
+    End If
+    
+    tmpRng.ClearContents
+    DataRng.Select
+    
+End Sub
+
 
 Sub GlobalNetGrossData()
 
@@ -184,7 +244,7 @@ Sub GlobalNetGrossData()
     
 End Sub
 
-Sub GlobalGrossPctData()
+Sub GlobalGrossCatData()
 
     Dim Months      As Integer
     Dim MySheet     As Worksheet
@@ -327,40 +387,38 @@ Sub RedempCalcData()
     Call EditHeader
     
     ' Copy chart data
-    Rows(4).Delete  ' no Guaranteed
-    Rows(6).Delete  ' no Real Estate
-    Range(Rows(LastRow), Rows(Rows.Count)).Delete
+    Range(Rows(LastRow + 1), Rows(Rows.Count)).Delete
     Set Categories = Range(Cells(FirstRow, 1), Cells(FirstRow, 1).End(xlDown))
     
     For i = 1 To 13
         Categories.Copy Range(Cells(i + 1, 1), Cells(i + 5, 1))
         Set Categories = Range(Cells(i + 1, 1), Cells(i + 5, 1))
-        i = i + 5
+        i = i + 4
     Next i
 
     ' Move assets to range below redemptions
     Set Assets = Range(Cells(FirstRow, LastCol + 1), _
-        Cells(FirstRow + 5, 2 * LastCol - 1))
-    Assets.Cut Range(Cells(FirstRow + 6, FirstCol), Cells(FirstRow + 9, LastCol))
+        Cells(FirstRow + 2, 2 * LastCol - 1))
+    Assets.Cut Range(Cells(FirstRow + 5, FirstCol), Cells(FirstRow + 7, LastCol))
     
     ' Label
     Range("A1").Value = "Redemptions"
-    Range("A7").Value = "Assets"
-    Range("A13").Value = "Redemptions rate"
+    Range("A6").Value = "Assets"
+    Range("A11").Value = "Redemptions rate"
     
     ' Add totals
-    Cells(6, 2).Formula = "=SUM(R[-4]C[0]:R[-1]C[0])"
+    Cells(5, 2).Formula = "=SUM(R[-4]C[0]:R[-1]C[0])"
     For i = 1 To 2
-        Cells(6, 2).Copy Range(Cells(6 * i, FirstCol), Cells(6 * i, LastCol))
+        Cells(5, 2).Copy Range(Cells(5 * i, FirstCol), Cells(5 * i, LastCol))
     Next i
     
     ' Add Redemptions rate (Redemp / Assets)
-    Range(Cells(14, FirstCol), Cells(18, LastCol)).Formula = "=R[-12]C[0] / R[-6]C[0]"
+    Range(Cells(12, FirstCol), Cells(15, LastCol)).Formula = "=R[-10]C[0] / R[-5]C[0]"
     
     ' Delete extraneous data & format
     Range(Cells(FirstRow - 1, LastCol + 1), Cells(Rows.Count, Columns.Count)).Delete
-    Range(Cells(FirstRow, FirstCol), Cells(12, LastCol)).NumberFormat = "#,##0.00_);-#,##0.00"
-    Range(Cells(14, FirstCol), Cells(18, LastCol)).NumberFormat = "0.00%;-0.00%"
+    Range(Cells(FirstRow, FirstCol), Cells(10, LastCol)).NumberFormat = "#,##0.00_);-#,##0.00"
+    Range(Cells(12, FirstCol), Cells(15, LastCol)).NumberFormat = "0.00%;-0.00%"
     Range(Columns(1), Columns(Cells(1, 2).End(xlToRight).Column)).AutoFit
     
     Range("A1").Select
@@ -372,7 +430,7 @@ Sub PTopBottomData()
 
     Dim MySheet     As Worksheet
     Dim FirstRow, LastRow, FirstCol, LastCol   As Long
-    Dim Top, Bottom, All   As Range
+    Dim top, Bottom, All   As Range
     Dim Final(1 To 2) As Range
     Dim total, Temp1, Temp2       As Long
     Dim Label(1 To 6) As String
@@ -399,9 +457,9 @@ Sub PTopBottomData()
     LastCol = Cells(1, 1).End(xlToRight).Column
         
     ' Select Top 5 & Bottom 5
-    Set Top = Range(Cells(FirstRow, FirstCol - 1), Cells(FirstRow + 4, LastCol))
-    Temp1 = Top.Rows(Top.Rows.Count).Row
-    Temp2 = Top.Columns(Top.Columns.Count).Column
+    Set top = Range(Cells(FirstRow, FirstCol - 1), Cells(FirstRow + 4, LastCol))
+    Temp1 = top.Rows(top.Rows.Count).Row
+    Temp2 = top.Columns(top.Columns.Count).Column
     
     ' Set LastRow to last non-null Gross Sale value
     LastRow = Cells(FirstRow, FirstCol).End(xlDown).Row
@@ -414,7 +472,7 @@ Sub PTopBottomData()
     Set Bottom = Range(Cells(Temp1 + 4, FirstCol - 1), Cells(Temp1 + 8, Temp2))
     
     ' Format
-    Top.Cells.NumberFormat = "#,##0.00_);-#,##0.00"
+    top.Cells.NumberFormat = "#,##0.00_);-#,##0.00"
     Bottom.Cells.NumberFormat = "#,##0.00_);-#,##0.00"
     
     ' Headers & formatting
@@ -426,22 +484,22 @@ Sub PTopBottomData()
     Label(6) = "All Categories"
     
     Rows(2).Insert Shift:=xlDown
-    Set Final(1) = Top
+    Set Final(1) = top
     Set Final(2) = Bottom
     
-    For Each Rng In Final
-        With Rng.Rows(-1)
+    For Each rng In Final
+        With rng.Rows(-1)
             For i = 1 To 3
                 .Columns(i) = Label(i)
             Next i
             .HorizontalAlignment = xlCenter
-            With Rng.Rows(-1).Font
+            With rng.Rows(-1).Font
                 .Bold = True
                 .ThemeColor = xlThemeColorDark1
                 .TintAndShade = 0
                 .ThemeFont = xlThemeFontNone
             End With
-            With Rng.Rows(-1).Interior
+            With rng.Rows(-1).Interior
                 .Pattern = xlSolid
                 .PatternColorIndex = xlAutomatic
                 .ThemeColor = xlThemeColorAccent1
@@ -450,7 +508,7 @@ Sub PTopBottomData()
             End With
         End With
         
-        With Rng.Rows(0)
+        With rng.Rows(0)
             For j = 2 To 3
                 .Columns(j) = Label(j + 2)
             Next j
@@ -459,16 +517,16 @@ Sub PTopBottomData()
         End With
         
         For c = 2 To 3
-            With Rng.Columns(c)
+            With rng.Columns(c)
                 If c = 2 Then
                     .Font.Bold = True
                 End If
                 .HorizontalAlignment = xlCenter
             End With
         Next c
-    Next Rng
+    Next rng
     
-    Top.Rows(-1).Columns(1).Value = "Top " & Top.Rows(-1).Columns(1).Value
+    top.Rows(-1).Columns(1).Value = "Top " & top.Rows(-1).Columns(1).Value
     Bottom.Rows(-1).Columns(1).Value = "Bottom " & Bottom.Rows(-1).Columns(1).Value
     
     Range(Rows(1), Rows(Rows.Count)).AutoFit
@@ -865,6 +923,9 @@ Sub LvCBData()
     
     DataArea.DataRange.Sort Key1:=DataArea.DataRange.Columns(1), Header:=xlNo
     
+    ' Abbreviate country names
+    AbbrCtryName DataArea.DataRange.Columns(1)
+    
     Cells(1, 1).Select
 
 End Sub
@@ -983,6 +1044,9 @@ Sub ManagerByCtryData()
     
     ' Number format
     Range(Cells(3, 2), Cells(3, 2).End(xlDown).End(xlToRight)).NumberFormat = "#,##0.00"
+    
+    ' Abbreviate country names
+    AbbrCtryName Range(Cells(3, 1), Cells(3, 1).End(xlDown))
     
     Cells(1, 1).Select
     
@@ -1672,21 +1736,21 @@ Sub TrailTRData(Yrs As Long, Optional Cutoff As Long)
         
 End Sub
 
+Sub InvTypeGrossData()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Dim DataRange As Range
+    
+    Set DataRange = Range(Cells(1, 1), Cells(1, 1).End(xlDown).End(xlToRight))
+    
+    ' Clear extraneous
+    With Range(Rows(DataRange.Rows.Count + 1), Rows(Rows.Count))
+        .ClearContents
+        .ClearFormats
+        .Rows.AutoFit
+    End With
+    
+    ' Rename headers
+    DataRange.Rows(1).Select
+    EditHeader
+    
+End Sub

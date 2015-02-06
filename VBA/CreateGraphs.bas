@@ -2,13 +2,18 @@ Attribute VB_Name = "CreateGraphs"
 ' Module with all chart-producing procedures
 Option Explicit
 
+' Colors
+' Navy RGB(12, 74, 116)
+' Teal RGB(146, 210, 198)
+' Gray RGB(199, 199, 199)
 
 Sub GlobalNetGrossChart()
 
     Dim MyChart                 As Chart
     Dim MyRange                 As Range
-    Dim StartCell, ChartLoc     As Range
+    Dim startCell, ChartLoc     As Range
     Dim ChartHeight, ChartWidth As Long
+    Dim Haxis                   As Variant
         
     Set MyRange = Range("A1:N5")
     
@@ -17,8 +22,8 @@ Sub GlobalNetGrossChart()
     ' Chart location & size params
     ChartHeight = 30
     ChartWidth = 12
-    Set StartCell = Cells(1, 1).Offset(6, 0)
-    Set ChartLoc = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Cells(1, 1).Offset(6, 0)
+    Set ChartLoc = Range(startCell, startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     With MyChart
         
@@ -31,8 +36,8 @@ Sub GlobalNetGrossChart()
         
         ' Set chart location
         With .Parent
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
         End With
@@ -40,84 +45,104 @@ Sub GlobalNetGrossChart()
         ' Adjust axes (nb: values already in millions)
         With MyChart.Axes(xlValue, xlPrimary)
             .HasTitle = True
-            .AxisTitle.text = "€ Billions"
-            .AxisTitle.Font.Size = 12
-            .AxisTitle.Font.Italic = msoTrue
+            .AxisTitle.text = "€ BILLIONS"
+            .AxisTitle.Font.Size = 9
             .AxisTitle.Font.Bold = msoFalse
             .AxisTitle.Orientation = xlHorizontal
-            .AxisTitle.Top = -5
-            .AxisTitle.Left = 8
-            .MajorGridlines.Delete
+            .AxisTitle.top = -5
+            .AxisTitle.left = 8
+            .AxisTitle.Font.Color = RGB(127, 127, 127)
+            .TickLabels.Font.Color = RGB(127, 127, 127)
+            .MajorGridlines.Border.Color = RGB(246, 249, 252)
+            .MajorTickMark = xlNone
+            .Format.Line.Visible = msoFalse
             .DisplayUnit = xlThousands
             .TickLabels.NumberFormat = "#,##0"
             .HasDisplayUnitLabel = False
-            .TickLabels.Font.Size = 12
+            .TickLabels.Font.Size = 9
         End With
         
         With MyChart.Axes(xlValue, xlSecondary)
             .HasTitle = True
-            .AxisTitle.text = "€ Trillions"
-            .AxisTitle.Font.Size = 12
-            .AxisTitle.Font.Italic = msoTrue
+            .AxisTitle.text = "€ TRILLIONS"
+            .AxisTitle.Font.Size = 9
             .AxisTitle.Font.Bold = msoFalse
             .AxisTitle.Orientation = xlHorizontal
-            .AxisTitle.Top = -5
-            .AxisTitle.Left = MyChart.ChartArea.Width - 80
+            .AxisTitle.top = -5
+            .AxisTitle.left = MyChart.ChartArea.Width - 80
+            .AxisTitle.Font.Color = RGB(127, 127, 127)
+            .TickLabels.Font.Color = RGB(127, 127, 127)
+            .MajorTickMark = xlNone
+            .Format.Line.Visible = msoFalse
             .DisplayUnit = xlMillions
             .HasDisplayUnitLabel = False
-            .TickLabels.Font.Size = 12
+            .TickLabels.Font.Size = 9
         End With
         
-        MyChart.Axes(xlCategory).TickLabels.Font.Size = 12
-        MyChart.Axes(xlCategory).TickLabels.Orientation = 15
+        ' Horizontal axes
+        .HasAxis(xlCategory, xlSecondary) = True
+        
+        For Each Haxis In Array(.Axes(xlCategory, xlPrimary), .Axes(xlCategory, xlSecondary))
+            Haxis.TickLabels.Font.Size = 9
+            Haxis.TickLabels.Font.Color = RGB(127, 127, 127)
+            Haxis.Format.Line.ForeColor.RGB = RGB(217, 217, 217)
+        Next Haxis
         
         ' Colors
-        ' Light Blue
-        With MyChart.SeriesCollection(1).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = 0.400000006
-            .Transparency = 0
-            .Solid
+        ' Gross
+        With MyChart.SeriesCollection(1).Format
+            .Fill.ForeColor.RGB = RGB(12, 74, 116)
+            .Fill.Solid
+            .Shadow.Transparency = 0.6200000048
+            .Shadow.Blur = 3.15
+            .Shadow.OffsetX = 9.7971743932E-17
+            .Shadow.OffsetY = 1.6
         End With
         
-        ' Navy
-        With MyChart.SeriesCollection(2).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorText2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .Transparency = 0
-            .Solid
+        ' Net
+        With MyChart.SeriesCollection(2).Format
+            .Fill.ForeColor.RGB = RGB(199, 199, 199)
+            .Fill.Solid
+            .Shadow.Transparency = 0.6200000048
+            .Shadow.Blur = 3.15
+            .Shadow.OffsetX = 9.7971743932E-17
+            .Shadow.OffsetY = 1.6
         End With
 
-        .SeriesCollection(3).Format.Line.ForeColor.RGB = RGB(152, 185, 84)
-        .SeriesCollection(3).Format.Line.Weight = 2.25
+        ' Total assets line
+        With MyChart.SeriesCollection(3).Format
+            .Line.ForeColor.RGB = RGB(147, 205, 221)
+            .Line.Weight = 1.25
+            .Shadow.Transparency = 0.6200000048
+            .Shadow.Blur = 3.15
+            .Shadow.OffsetX = 9.7971743932E-17
+            .Shadow.OffsetY = 1.6
+        End With
         
-        With MyChart.SeriesCollection(4).Format.Line
-            .Visible = msoTrue
-            .Weight = 2.25
-            .DashStyle = msoLineSysDash
-            .ForeColor.ObjectThemeColor = msoThemeColorText2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .Transparency = 0
+        ' Avg Gross line
+        With MyChart.SeriesCollection(4).Format
+            .Line.ForeColor.RGB = RGB(146, 210, 198)
+            .Line.Weight = 1.25
+            .Shadow.Transparency = 0.6200000048
+            .Shadow.Blur = 3.15
+            .Shadow.OffsetX = 9.7971743932E-17
+            .Shadow.OffsetY = 1.6
         End With
 
         ' Legend
         .Legend.Position = xlLegendPositionBottom
-        .Legend.Font.Size = 12
-        .Legend.Top = .Legend.Top - 15
-        .Legend.Left = .PlotArea.Left + 10
+        .Legend.Font.Size = 9
+        .Legend.Font.Color = RGB(127, 127, 127)
+        .Legend.top = .Legend.top - 15
+        .Legend.left = .PlotArea.left + 10
         .Legend.Height = 30
         .Legend.Width = .PlotArea.Width - 20
         
         ' Correcting for squished shape (from incl axis titles)
-        .PlotArea.Top = 12
-        .PlotArea.Left = 0
+        .PlotArea.top = 12
+        .PlotArea.left = 0
         .PlotArea.Width = .ChartArea.Width - 10
-        .PlotArea.Height = .ChartArea.Height - 20
+        .PlotArea.Height = .ChartArea.Height - 25
         
     End With
 
@@ -127,22 +152,23 @@ Sub GlobalNetGrossChart()
 End Sub
 
 
-Sub GlobalGrossPctChart()
+Sub GlobalGrossCatChart()
 
-    Dim MyChart As Chart
-    Dim MyRange As Range
-    Dim StartCell, ChartLoc     As Range
+    Dim MyChart                 As Chart
+    Dim MyRange                 As Range
+    Dim startCell, ChartLoc     As Range
     Dim ChartHeight, ChartWidth As Long
+    Dim i                       As Integer
     
     Set MyRange = Range("A1:N5")
     
     ' Chart location & size params
     ChartHeight = 30
     ChartWidth = 14
-    Set StartCell = Cells(1, 1).Offset(6, 0)
-    Set ChartLoc = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Cells(1, 1).Offset(6, 0)
+    Set ChartLoc = Range(startCell, startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
-    Set MyChart = ActiveSheet.Shapes.AddChart(xlColumnStacked100).Chart
+    Set MyChart = ActiveSheet.Shapes.AddChart(xlLineMarkers).Chart
     
     With MyChart
         
@@ -151,7 +177,7 @@ Sub GlobalGrossPctChart()
         .ChartGroups(1).GapWidth = 80
         
         ' Adjust axes (nb: values already in millions)
-        With MyChart.Axes(xlValue, xlPrimary)
+        With .Axes(xlValue, xlPrimary)
             .MajorGridlines.Delete
             .TickLabels.Font.Size = 12
         End With
@@ -161,58 +187,76 @@ Sub GlobalGrossPctChart()
         
         ' Set Location
         With .Parent
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
         End With
         
-        ' Colors
-        ' Navy
-        With MyChart.SeriesCollection(1).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorText2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .Transparency = 0
-            .Solid
-        End With
+        ' Format lines
+        For i = 1 To 4
         
-        ' Light Blue
-        With MyChart.SeriesCollection(2).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = 0.400000006
-            .Transparency = 0
-            .Solid
-        End With
+        ' Colors (Bond, Equity, Mixed, Other)
+            If i = 1 Then
+                MyChart.SeriesCollection(i).Format.Line.ForeColor.RGB = RGB(79, 129, 189)
+                MyChart.SeriesCollection(i).Format.Fill.ForeColor.RGB = RGB(79, 129, 189)
+            ElseIf i = 2 Then
+                MyChart.SeriesCollection(i).Format.Line.ForeColor.RGB = RGB(146, 210, 198)
+                MyChart.SeriesCollection(i).Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
+            ElseIf i = 3 Then
+                MyChart.SeriesCollection(i).Format.Line.ForeColor.RGB = RGB(190, 115, 102)
+                MyChart.SeriesCollection(i).Format.Fill.ForeColor.RGB = RGB(190, 115, 102)
+            ElseIf i = 4 Then
+                MyChart.SeriesCollection(i).Format.Line.ForeColor.RGB = RGB(199, 199, 199)
+                MyChart.SeriesCollection(i).Format.Fill.ForeColor.RGB = RGB(199, 199, 199)
+            End If
+                
+            With .SeriesCollection(i)
+                .Smooth = True
+                .MarkerStyle = 8
+                .MarkerSize = 4
+                With .Format
+                    .Line.Weight = 1.5
+                    .Shadow.Transparency = 0.6200000048
+                    .Shadow.Blur = 3.15
+                    .Shadow.OffsetX = 9.7971743932E-17
+                    .Shadow.OffsetY = 1.6
+                End With
+                
+            End With
+        Next i
         
-        ' Stripey
-        With MyChart.SeriesCollection(3).Format.Fill
-            .Visible = msoTrue
-            .Patterned msoPatternDarkUpwardDiagonal
-            .ForeColor.RGB = RGB(255, 255, 255)
-            .BackColor.ObjectThemeColor = msoThemeColorBackground1
-            .BackColor.TintAndShade = 0
-            .BackColor.Brightness = -0.5
+        ' Axes
+        With .Axes(xlValue)
+            .HasTitle = True
+            .AxisTitle.text = "€ BILLIONS"
+            .AxisTitle.Font.Size = 9
+            .AxisTitle.Font.Bold = msoFalse
+            .AxisTitle.Orientation = 90
+            .AxisTitle.top = 5
+            .AxisTitle.left = 3
+            .AxisTitle.Font.Color = RGB(127, 127, 127)
+            .TickLabels.Font.Color = RGB(127, 127, 127)
+            .MajorGridlines.Border.Color = RGB(199, 199, 199)
+            .MajorTickMark = xlNone
+            .Format.Line.Visible = msoFalse
+            .DisplayUnit = xlThousands
+            .TickLabels.NumberFormat = "#,##0"
+            .HasDisplayUnitLabel = False
+            .TickLabels.Font.Size = 9
         End With
-        
-        ' Dot-ey
-        With MyChart.SeriesCollection(4).Format.Fill
-            .Visible = msoTrue
-            .Patterned msoPattern50Percent
-            .ForeColor.ObjectThemeColor = msoThemeColorBackground1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.150000006
-            .BackColor.ObjectThemeColor = msoThemeColorBackground1
-            .BackColor.TintAndShade = 0
-            .BackColor.Brightness = -0.5
+
+        With .Axes(xlCategory)
+            .MajorTickMark = xlNone
+            .TickLabels.Font.Size = 9
+            .TickLabels.Font.Color = RGB(127, 127, 127)
+            .Format.Line.ForeColor.RGB = RGB(217, 217, 217)
         End With
 
         ' Legend
-        .Legend.Position = xlLegendPositionTop
-        .Legend.Font.Size = 12
+        .Legend.Position = xlLegendPositionBottom
+        .Legend.Font.Size = 9
+        .Legend.Font.Color = RGB(127, 127, 127)
         
     End With
 
@@ -227,7 +271,7 @@ Sub NetAvgPerfChart()
     Dim Series1                 As Range
     Dim Series2                 As Range
     Dim i                       As Integer
-    Dim StartCell, ChartLoc     As Range
+    Dim startCell, ChartLoc     As Range
     Dim ChartHeight, ChartWidth As Long
     
     Set Series1 = Range("A1:N3")
@@ -237,8 +281,8 @@ Sub NetAvgPerfChart()
     ' Chart location & size params
     ChartHeight = 24
     ChartWidth = 12
-    Set StartCell = Cells(1, 1).Offset(6, 0)
-    Set ChartLoc = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Cells(1, 1).Offset(6, 0)
+    Set ChartLoc = Range(startCell, startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     Set MyChart = ActiveSheet.Shapes.AddChart(xlColumnClustered).Chart
     
@@ -263,8 +307,8 @@ Sub NetAvgPerfChart()
         
         ' Set Location
         With .Parent
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
         End With
@@ -277,8 +321,8 @@ Sub NetAvgPerfChart()
             .AxisTitle.Font.Italic = msoTrue
             .AxisTitle.Font.Bold = msoFalse
             .AxisTitle.Orientation = xlHorizontal
-            .AxisTitle.Top = -5
-            .AxisTitle.Left = 8
+            .AxisTitle.top = -5
+            .AxisTitle.left = 8
             .MajorGridlines.Delete
             .DisplayUnit = xlThousands
             .TickLabels.NumberFormat = "#,##0"
@@ -293,8 +337,8 @@ Sub NetAvgPerfChart()
             .AxisTitle.Font.Italic = msoTrue
             .AxisTitle.Font.Bold = msoFalse
             .AxisTitle.Orientation = xlHorizontal
-            .AxisTitle.Top = -5
-            .AxisTitle.Left = MyChart.ChartArea.Width - 30
+            .AxisTitle.top = -5
+            .AxisTitle.left = MyChart.ChartArea.Width - 30
             .TickLabels.Font.Size = 12
             .TickLabels.NumberFormat = "#,##0.0"
         End With
@@ -338,20 +382,20 @@ Sub NetAvgPerfChart()
         ' Legend
         .Legend.Position = xlLegendPositionBottom
         .Legend.Font.Size = 12
-        .Legend.Top = .Legend.Top - 20
-        .Legend.Left = .Legend.Left - 20
+        .Legend.top = .Legend.top - 20
+        .Legend.left = .Legend.left - 20
         .Legend.Height = 30
         .Legend.Width = 400
         
         ' Correcting for squished shape (from incl axis titles)
-        .PlotArea.Top = 12
-        .PlotArea.Left = 0
+        .PlotArea.top = 12
+        .PlotArea.left = 0
         .PlotArea.Width = 350
         .PlotArea.Height = 180
         
         ' Resize PlotArea
         With .PlotArea
-            .Top = .Top + 5
+            .top = .top + 5
             .Height = MyChart.ChartArea.Height - 25
             .Width = MyChart.ChartArea.Width - 10
         End With
@@ -369,11 +413,11 @@ Sub RedempCalcChart()
     Dim MyChart                 As Chart
     Dim Series1                 As Range
     Dim i                       As Integer
-    Dim StartCell, ChartLoc     As Range
+    Dim startCell, ChartLoc     As Range
     Dim ChartHeight, ChartWidth As Long
     
     
-    Set Series1 = Range("B14:N18")
+    Set Series1 = Range("B12:N15")
     
     Set MySheet = ActiveSheet
     Set MyChart = MySheet.Shapes.AddChart(xlColumnClustered).Chart
@@ -381,14 +425,14 @@ Sub RedempCalcChart()
     ' Chart location & size params
     ChartHeight = 24
     ChartWidth = 12
-    Set StartCell = Series1(1, 1).Offset(6, 0)
-    Set ChartLoc = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Series1(1, 1).Offset(6, 0)
+    Set ChartLoc = Range(startCell, startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     With MyChart
     
         .SetSourceData Source:=Series1, PlotBy:=xlRows
         ' Prepare data & presentation
-        For i = 1 To 4
+        For i = 1 To 3
             With MyChart.SeriesCollection(i)
                 .Name = Series1(i, 1).Offset(0, -1)
                 .Values = Series1.Rows(i)
@@ -396,12 +440,12 @@ Sub RedempCalcChart()
             End With
             .SeriesCollection(i).ChartType = xlLine
         Next i
-        .SeriesCollection(5).Name = "Total"
+        .SeriesCollection(4).Name = "Total"
 
         ' Set Location
         With .Parent
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
         End With
@@ -418,55 +462,30 @@ Sub RedempCalcChart()
         .Axes(xlCategory).TickLabels.Orientation = 25
         
         ' Colors
-        ' Navy
+        ' Bond
         With .SeriesCollection(1).Format.Line
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorText2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .Transparency = 0
+            .ForeColor.RGB = RGB(12, 74, 116)
         End With
         
-        ' Light Blue
+        ' Equity
         With .SeriesCollection(2).Format.Line
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = 0.400000006
-            .Transparency = 0
+            .ForeColor.RGB = RGB(146, 210, 198)
         End With
         
-        ' Medium Blue
+        ' Mixed
         With .SeriesCollection(3).Format.Line
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .Transparency = 0
+            .ForeColor.RGB = RGB(214, 236, 242)
         End With
         
-        ' Dark Blue
-        With .SeriesCollection(4).Format.Line
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorText2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = 0.400000006
-            .Transparency = 0
-        End With
-        
-        ' Stripey
-        With .SeriesCollection(5).Format.Fill
-            .Visible = msoTrue
-            .Patterned msoPatternLightUpwardDiagonal
-            .ForeColor.ObjectThemeColor = msoThemeColorBackground1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.5
-            .BackColor.RGB = RGB(255, 255, 255)
+        ' Total
+        With .SeriesCollection(4).Format.Fill
+            .Patterned msoPattern20Percent
+            .ForeColor.RGB = RGB(199, 199, 199)
         End With
         
         ' Legend
         .Legend.Position = xlLegendPositionTop
-        .Legend.Left = MyChart.ChartArea.Left + 20
+        .Legend.left = MyChart.ChartArea.left + 20
         .Legend.Font.Size = 12
         .Legend.Height = 30
         .Legend.Width = MyChart.ChartArea.Width - 50
@@ -545,8 +564,8 @@ Sub MTopBottomChart()
                 With MyChart(i, j).Parent
                     .Height = ChartLoc.Height
                     .Width = ChartLoc.Width
-                    .Top = ChartLoc.Top
-                    .Left = ChartLoc.Left
+                    .top = ChartLoc.top
+                    .left = ChartLoc.left
                 End With
                 
                 ' Source top 5
@@ -566,8 +585,8 @@ Sub MTopBottomChart()
                         Countries(i).DataRange(LastRow, 4).Address & ":" & _
                         Countries(i).DataRange(LastRow - 4, 5).Address _
                         )
-                    MyChart(i, j).Parent.Top = _
-                        ChartLoc.Offset(ChartHeight + 1, 0).Top
+                    MyChart(i, j).Parent.top = _
+                        ChartLoc.Offset(ChartHeight + 1, 0).top
                 End If
                 
                 ' Rename series
@@ -582,8 +601,8 @@ Sub MTopBottomChart()
                 .ChartTitle.text = Countries(i).Name
                 
                 Set AuxTitle = MyChart(i, j).Shapes.AddLabel(msoTextOrientationHorizontal, _
-                    MyChart(i, j).ChartTitle.Left + 1, _
-                    MyChart(i, j).ChartTitle.Top + 20, _
+                    MyChart(i, j).ChartTitle.left + 1, _
+                    MyChart(i, j).ChartTitle.top + 20, _
                     60, 19)
                 AuxTitle.TextFrame2.TextRange.Characters.text = "€ Millions"
                 
@@ -591,24 +610,10 @@ Sub MTopBottomChart()
             
                 ' Colors
                 ' Local = Navy
-                With .SeriesCollection(1).Format.Fill
-                    .Visible = msoTrue
-                    .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-                    .ForeColor.TintAndShade = 0
-                    .ForeColor.Brightness = -0.5
-                    .Transparency = 0
-                    .Solid
-                End With
+                .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(12, 74, 116)
                 
-                ' CB = Pale Green
-                With .SeriesCollection(2).Format.Fill
-                    .Visible = msoTrue
-                    .ForeColor.ObjectThemeColor = msoThemeColorAccent3
-                    .ForeColor.TintAndShade = 0
-                    .ForeColor.Brightness = 0.400000006
-                    .Transparency = 0
-                    .Solid
-                End With
+                ' CB = Teal
+                .SeriesCollection(2).Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
             
             End With
         
@@ -689,8 +694,8 @@ Sub MktShareChart()
                 With MyChart(i, j).Parent
                     .Height = ChartLoc.Height
                     .Width = ChartLoc.Width
-                    .Top = ChartLoc.Top
-                    .Left = ChartLoc.Left
+                    .top = ChartLoc.top
+                    .left = ChartLoc.left
                 End With
                 
                 ' Set source
@@ -803,8 +808,8 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
             
                 .Height = ChartLoc.Height
                 .Width = ChartLoc.Width
-                .Top = ChartLoc.Top
-                .Left = ChartLoc.Left
+                .top = ChartLoc.top
+                .left = ChartLoc.left
             
             End With
             
@@ -861,8 +866,8 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
             ' Adjust for squished plot area
             Application.DisplayAlerts = False
             With .PlotArea
-                .Top = MyChart.ChartArea.Top + 10
-                .Left = MyChart.ChartArea.Left
+                .top = MyChart.ChartArea.top + 10
+                .left = MyChart.ChartArea.left
                 .Width = MyChart.ChartArea.Width
                 .Height = MyChart.ChartArea.Height - 40
             End With
@@ -870,14 +875,14 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
             
             ' Add text boxes (ie yLabel & Key)
             Set yLabel = MyChart.Shapes.AddLabel(msoTextOrientationHorizontal, _
-                MyChart.PlotArea.Left + 20, _
-                MyChart.PlotArea.Top - 20, _
+                MyChart.PlotArea.left + 20, _
+                MyChart.PlotArea.top - 20, _
                 180, 19)
             yLabel.TextFrame2.TextRange.Characters.text = yLabelText
             yLabel.TextFrame2.TextRange.Font.Size = 12
             Set Key = MyChart.Shapes.AddLabel(msoTextOrientationHorizontal, _
-                MyChart.PlotArea.Left + MyChart.PlotArea.Width - 100, _
-                MyChart.PlotArea.Top, _
+                MyChart.PlotArea.left + MyChart.PlotArea.Width - 100, _
+                MyChart.PlotArea.top, _
                 120, 20)
             Key.TextFrame2.TextRange.Characters.text = "Bubble Size = Net Sales in Euro"
             Key.TextFrame2.TextRange.Font.Size = 12
@@ -925,59 +930,59 @@ Sub LvCBChart()
         With .Parent
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
         End With
         
         ' Axes
         With .Axes(xlValue)
             .MajorGridlines.Delete
             .DisplayUnit = xlThousands
-            .TickLabels.NumberFormat = "#,##0.0"
+            .TickLabels.NumberFormat = "#,##0"
             .HasDisplayUnitLabel = False
             .TickLabels.Font.Size = 10
+            .HasTitle = True
+            .AxisTitle.text = "€ BILLIONS"
+            .AxisTitle.Orientation = 90
+            .AxisTitle.Font.Bold = msoFalse
+            .AxisTitle.top = 30
+            .AxisTitle.left = 5
         End With
+        
+        .Axes(xlCategory).TickLabelPosition = xlLow
         
         ' Labelling
         .HasTitle = True
         With .ChartTitle
-            .text = "€ Billions"
+            .text = "Cross Border & Local Net Sales by Country"
             .Format.TextFrame2.TextRange.Font.Size = 11
-            .Format.TextFrame2.TextRange.Font.Italic = msoTrue
-            .Format.TextFrame2.TextRange.Font.Bold = msoFalse
         End With
         
         .HasLegend = True
         With .Legend
-            .Left = MyChart.ChartTitle.Left - 120
-            .Top = MyChart.ChartTitle.Top + 30
+            .left = MyChart.ChartTitle.left - 120
+            .top = MyChart.ChartTitle.top + 30
             .Height = 20
             .Width = 180
         End With
         
         ' Resize PlotArea
-        .PlotArea.Width = MyChart.ChartArea.Width - 20
+        .PlotArea.top = 5
+        .PlotArea.Width = MyChart.ChartArea.Width - 25
+        .PlotArea.Height = MyChart.ChartArea.Height - 10
+        
+        ' Legend
+        With .Legend
+            .top = MyChart.ChartTitle.top + 20
+            .left = MyChart.ChartTitle.left + 5
+        End With
         
         ' Colors
         ' Local = Navy
-        With .SeriesCollection(1).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.5
-            .Transparency = 0
-            .Solid
-        End With
+        .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(12, 74, 116)
         
-        ' CB = Pale Green
-        With .SeriesCollection(2).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent3
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = 0.400000006
-            .Transparency = 0
-            .Solid
-        End With
+        ' CB = Teal
+        .SeriesCollection(2).Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
         
     End With
 
@@ -986,10 +991,12 @@ End Sub
 Sub ManagerByCtryChart()
 
     Dim Area(2, 2), DataRange   As Range
-    Dim ChartLoc, StartCell     As Range
+    Dim ChartLoc, startCell     As Range
     Dim MySheet                 As Worksheet
     Dim MyChart                 As Chart
     Dim ChartWidth, ChartHeight As Long
+    Dim CountryNames            As New Scripting.Dictionary
+    Dim Country                 As Variant
 
     Set MySheet = ActiveSheet
     Set Area(1, 1) = Cells(2, 1)
@@ -998,11 +1005,12 @@ Sub ManagerByCtryChart()
     Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
     Set DataRange = Range(Area(1, 1), Area(2, 2).Offset(0, -3))
     
+    
     ' Chart params
     ChartWidth = 6
     ChartHeight = 20
-    Set StartCell = Area(2, 1).Offset(2, 0)
-    Set ChartLoc = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Area(2, 1).Offset(2, 0)
+    Set ChartLoc = Range(startCell, startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     Set MyChart = MySheet.Shapes.AddChart(xlColumnStacked).Chart
     
@@ -1014,8 +1022,8 @@ Sub ManagerByCtryChart()
         With .Parent
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
         End With
         
         ' Gap Width
@@ -1025,68 +1033,48 @@ Sub ManagerByCtryChart()
         With .Axes(xlValue)
             .MajorGridlines.Delete
             .DisplayUnit = xlThousands
-            .TickLabels.NumberFormat = "#,##0.0"
+            .TickLabels.NumberFormat = "#,##0"
             .HasDisplayUnitLabel = False
             .TickLabels.Font.Size = 10
             .HasTitle = True
             
             With .AxisTitle
-                .Orientation = xlHorizontal
-                .text = "€ Billions"
+                .Orientation = 90
+                .text = "€ BILLIONS"
                 .Font.Bold = msoFalse
-                .Font.Italic = msoTrue
-                .Top = 3
-                .Left = 5
+                .top = 10
+                .left = -2
             End With
             
         End With
         
+        .Axes(xlCategory).TickLabelPosition = xlLow
+        
         ' Labelling
         .HasLegend = True
         With .Legend
-            .Top = MyChart.PlotArea.Top
-            .Left = MyChart.PlotArea.Left + 40
+            .top = MyChart.PlotArea.top
+            .left = MyChart.PlotArea.left + 40
             .Width = MyChart.PlotArea.Width
             .Height = 20
         End With
         
         ' Resize/reorient plot area
         With .PlotArea
-            .Top = 20
-            .Left = 5
+            .top = 10
+            .left = 10
             .Width = MyChart.ChartArea.Width - 20
         End With
         
         ' Colors
         ' Top 3 = Navy
-        With .SeriesCollection(2).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.5
-            .Transparency = 0
-            .Solid
-        End With
+        .SeriesCollection(2).Format.Fill.ForeColor.RGB = RGB(12, 74, 116)
         
-        ' Middle = Gray stripes
-        With .SeriesCollection(1).Format.Fill
-            .Visible = msoTrue
-            .Patterned msoPatternDarkUpwardDiagonal
-            .BackColor.RGB = RGB(255, 255, 255)
-            .ForeColor.ObjectThemeColor = msoThemeColorBackground1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-        End With
+        ' Middle = Gray
+        .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(199, 199, 199)
         
-        ' Bottom 3 = Pink
-        With .SeriesCollection(3).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = 0.8000000119
-            .Transparency = 0
-            .Solid
-        End With
+        ' Bottom 3 = Light Blue
+        .SeriesCollection(3).Format.Fill.ForeColor.RGB = RGB(147, 205, 221)
         
         
     End With
@@ -1098,7 +1086,7 @@ End Sub
 Sub GrossByRegionChart()
 
     Dim Area(2, 2), DataRange   As Range
-    Dim ChartLoc, StartCell     As Range
+    Dim ChartLoc, startCell     As Range
     Dim MySheet                 As Worksheet
     Dim MyChart                 As Chart
     Dim ChartWidth, ChartHeight As Long
@@ -1113,9 +1101,9 @@ Sub GrossByRegionChart()
     ' Chart params
     ChartWidth = 10
     ChartHeight = 20
-    Set StartCell = Cells(Area(2, 1).Offset(7, 0).Row, 1)
-    Set ChartLoc = Range(StartCell, _
-        StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Cells(Area(2, 1).Offset(7, 0).Row, 1)
+    Set ChartLoc = Range(startCell, _
+        startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     Set MyChart = MySheet.Shapes.AddChart(xlColumnStacked100).Chart
     
@@ -1128,8 +1116,8 @@ Sub GrossByRegionChart()
         With .Parent
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
         End With
         
         .ChartGroups(1).GapWidth = 80
@@ -1141,7 +1129,7 @@ Sub GrossByRegionChart()
         
         With .Legend
             .Position = xlLegendPositionTop
-            .Left = MyChart.PlotArea.Left
+            .left = MyChart.PlotArea.left
             .Width = MyChart.PlotArea.Width
             .Font.Size = 12
         End With
@@ -1187,7 +1175,7 @@ End Sub
 Sub EquityCatSalesChart()
 
     Dim Area(2, 2), tmpRange    As Range
-    Dim ChartLoc, StartCell     As Range
+    Dim ChartLoc, startCell     As Range
     Dim MySheet                 As Worksheet
     Dim MyChart                 As Chart
     Dim ChartWidth, ChartHeight As Long
@@ -1223,9 +1211,9 @@ Sub EquityCatSalesChart()
     ' Chart params
     ChartWidth = 12
     ChartHeight = 30
-    Set StartCell = Cells(Area(2, 1).Offset(2, 0).Row, 1)
-    Set ChartLoc = Range(StartCell, _
-        StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set startCell = Cells(Area(2, 1).Offset(2, 0).Row, 1)
+    Set ChartLoc = Range(startCell, _
+        startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
     Set MyChart = MySheet.Shapes.AddChart(xlColumnClustered).Chart
     
@@ -1264,8 +1252,8 @@ Sub EquityCatSalesChart()
         With .Parent
             .Width = ChartLoc.Width
             .Height = ChartLoc.Height
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
         End With
     
         ' Axes
@@ -1284,8 +1272,8 @@ Sub EquityCatSalesChart()
                 .Font.Size = 12
                 .Font.Bold = msoFalse
                 .Font.Italic = msoTrue
-                .Top = 0
-                .Left = 5
+                .top = 0
+                .left = 5
             End With
             
         End With
@@ -1303,8 +1291,8 @@ Sub EquityCatSalesChart()
                 .Font.Size = 12
                 .Font.Bold = msoFalse
                 .Font.Italic = msoTrue
-                .Top = 0
-                .Left = MyChart.ChartArea.Width - 25
+                .top = 0
+                .left = MyChart.ChartArea.Width - 25
             End With
             
         End With
@@ -1317,16 +1305,16 @@ Sub EquityCatSalesChart()
         
         ' Legend
         With .Legend
-            .Top = MyChart.PlotArea.Top + 10
-            .Left = MyChart.ChartArea.Left + 25
+            .top = MyChart.PlotArea.top + 10
+            .left = MyChart.ChartArea.left + 25
             .Height = 30
             .Width = MyChart.ChartArea.Width - 50
             .Font.Size = 10
         End With
     
         ' PlotArea adjustments
-        .PlotArea.Top = 20
-        .PlotArea.Left = .ChartArea.Left
+        .PlotArea.top = 20
+        .PlotArea.left = .ChartArea.left
         .PlotArea.Width = .ChartArea.Width
         
         ' Colors
@@ -1440,8 +1428,8 @@ Sub ManagerBubbleChart(Optional TitleText As String = "")
             
                 .Height = ChartLoc.Height
                 .Width = ChartLoc.Width
-                .Top = ChartLoc.Top
-                .Left = ChartLoc.Left
+                .top = ChartLoc.top
+                .left = ChartLoc.left
             
             End With
             
@@ -1508,8 +1496,8 @@ Sub ManagerBubbleChart(Optional TitleText As String = "")
             ' Adjust for squished plot area
             Application.DisplayAlerts = False
             With .PlotArea
-                .Top = 20
-                .Left = 0
+                .top = 20
+                .left = 0
                 .Width = MyChart.ChartArea.Width
                 .Height = MyChart.ChartArea.Height - 40
             End With
@@ -1517,8 +1505,8 @@ Sub ManagerBubbleChart(Optional TitleText As String = "")
             
             ' Add text boxes (ie yLabel)
             Set yLabel = MyChart.Shapes.AddLabel(msoTextOrientationHorizontal, _
-                MyChart.PlotArea.Left + 20, _
-                MyChart.PlotArea.Top - 20, _
+                MyChart.PlotArea.left + 20, _
+                MyChart.PlotArea.top - 20, _
                 180, 19)
             yLabel.TextFrame2.TextRange.Characters.text = BubbleLab(2)
             yLabel.TextFrame2.TextRange.Font.Size = 12
@@ -1552,7 +1540,7 @@ Sub MSRegionChart(Optional kind As String = "countries")
     Dim DataRange(1 To 2)       As CMetaData
     Dim Area(2, 2)              As Range
     Dim ChartLoc(1 To 2)        As Range
-    Dim StartCell, Measure      As Range
+    Dim startCell, Measure      As Range
     Dim MySheet                 As Worksheet
     Dim MyChart(1 To 2)         As Chart
     Dim ChartWidth, ChartHeight As Long
@@ -1581,8 +1569,8 @@ Sub MSRegionChart(Optional kind As String = "countries")
     ChartHeight = 30
     
     For i = 1 To 2
-        Set StartCell = Area(2, 1).Offset(2 + (i - 1) * ChartHeight, 0)
-        Set ChartLoc(i) = Range(StartCell, StartCell.Offset(ChartHeight - 2, ChartWidth - 1))
+        Set startCell = Area(2, 1).Offset(2 + (i - 1) * ChartHeight, 0)
+        Set ChartLoc(i) = Range(startCell, startCell.Offset(ChartHeight - 2, ChartWidth - 1))
     Next i
     
     ' Define data ranges
@@ -1631,8 +1619,8 @@ Sub MSRegionChart(Optional kind As String = "countries")
         With .Parent
             .Height = ChartLoc(i).Height
             .Width = ChartLoc(i).Width
-            .Top = ChartLoc(i).Top
-            .Left = ChartLoc(i).Left
+            .top = ChartLoc(i).top
+            .left = ChartLoc(i).left
         End With
         
         ' Axes
@@ -1649,8 +1637,8 @@ Sub MSRegionChart(Optional kind As String = "countries")
             .AxisTitle.Font.Italic = msoTrue
             .AxisTitle.Font.Bold = msoFalse
             .AxisTitle.Orientation = xlHorizontal
-            .AxisTitle.Top = -5
-            .AxisTitle.Left = 8
+            .AxisTitle.top = -5
+            .AxisTitle.left = 8
             .MajorGridlines.Delete
             .TickLabels.Font.Size = 11
             .DisplayUnit = xlThousands
@@ -1661,9 +1649,9 @@ Sub MSRegionChart(Optional kind As String = "countries")
         With .Legend
             .Font.Name = "Wingdings"
             .Font.Size = 11
-            .Left = MyChart(i).ChartArea.Width - 350
+            .left = MyChart(i).ChartArea.Width - 350
             .Height = 30
-            .Top = MyChart(i).ChartArea.Height - 85
+            .top = MyChart(i).ChartArea.Height - 85
             .Width = 300
         End With
 
@@ -1672,8 +1660,8 @@ Sub MSRegionChart(Optional kind As String = "countries")
         .ChartTitle.text = " "
         
         Set TitleBox = MyChart(i).Shapes.AddLabel(msoTextOrientationHorizontal, _
-            MyChart(i).ChartTitle.Left - 78, _
-            MyChart(i).ChartTitle.Top, _
+            MyChart(i).ChartTitle.left - 78, _
+            MyChart(i).ChartTitle.top, _
             145, 18)
             
         With TitleBox
@@ -1737,9 +1725,9 @@ Sub MSRegionChart(Optional kind As String = "countries")
         
         ' Resize PlotArea
         With .PlotArea
-            .Top = 20
+            .top = 20
             .Height = MyChart(i).ChartArea.Height - 20
-            .Left = MyChart(i).ChartArea.Left
+            .left = MyChart(i).ChartArea.left
             .Width = MyChart(i).ChartArea.Width - 10
         End With
             
@@ -1767,7 +1755,7 @@ Sub MTopBottomTable()
     Set DataArea = Range(Area(1, 1).Offset(1, 1), Area(1, 1).Offset(4, 4))
     
     
-    ' Create pretty pink boxes
+    ' Create boxes
     i = 0
     Do
         Set PasteArea = DataArea.Offset(1 + 2 * i, 5)
@@ -1782,7 +1770,7 @@ Sub MTopBottomTable()
             .Font.Size = 8
             .Font.Bold = True
             .Interior.Pattern = xlSolid
-            .Interior.Color = 16764159
+            .Interior.Color = RGB(199, 199, 199)
             .BorderAround LineStyle:=xlContinuous
         End With
         
@@ -1790,7 +1778,7 @@ Sub MTopBottomTable()
             .Font.Size = 8
             .Font.Bold = True
             .Interior.Pattern = xlSolid
-            .Interior.Color = 16764159
+            .Interior.Color = RGB(199, 199, 199)
             .BorderAround LineStyle:=xlContinuous
         End With
         
@@ -1813,7 +1801,7 @@ Sub EuroTRQuartileChart()
     Dim ChartData                   As Range
     Dim MySheet                     As Worksheet
     Dim ChartLoc(1 To 2)            As Range
-    Dim StartCell                   As Range
+    Dim startCell                   As Range
     Dim MyChart(1 To 2)             As Chart
     Dim ChartWidth, ChartHeight     As Long
     Dim Months, i, j                As Long
@@ -1831,8 +1819,8 @@ Sub EuroTRQuartileChart()
     ChartWidth = 14
     ChartHeight = 28
     For i = 1 To 2
-        Set StartCell = Area(2, 1).Offset(2 + (i - 1) * (ChartHeight + 1), 0)
-        Set ChartLoc(i) = Range(StartCell, StartCell.Offset(ChartHeight - 1, ChartWidth - 1))
+        Set startCell = Area(2, 1).Offset(2 + (i - 1) * (ChartHeight + 1), 0)
+        Set ChartLoc(i) = Range(startCell, startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     Next i
     
     For i = 1 To 2
@@ -1861,8 +1849,8 @@ Sub EuroTRQuartileChart()
             
             ' Set chart location
             With .Parent
-                .Top = ChartLoc(i).Top
-                .Left = ChartLoc(i).Left
+                .top = ChartLoc(i).top
+                .left = ChartLoc(i).left
                 .Height = ChartLoc(i).Height
                 .Width = ChartLoc(i).Width
             End With
@@ -1879,8 +1867,8 @@ Sub EuroTRQuartileChart()
                 .AxisTitle.Font.Italic = msoTrue
                 .AxisTitle.Font.Bold = msoFalse
                 .AxisTitle.Orientation = xlHorizontal
-                .AxisTitle.Top = 0
-                .AxisTitle.Left = 8
+                .AxisTitle.top = 0
+                .AxisTitle.left = 8
             End With
             
             With .Axes(xlCategory)
@@ -1892,8 +1880,8 @@ Sub EuroTRQuartileChart()
             ' Legend
             With .Legend
                 .Position = xlLegendPositionBottom
-                .Top = .Top - 30
-                .Left = .Left - 25
+                .top = .top - 30
+                .left = .left - 25
                 .Width = 250
             End With
             
@@ -1948,9 +1936,9 @@ Sub EuroTRQuartileChart()
             End With
             
             ' Resize PlotArea
-            .PlotArea.Left = .ChartArea.Left
+            .PlotArea.left = .ChartArea.left
             .PlotArea.Width = .ChartArea.Width - 10
-            .PlotArea.Top = 15
+            .PlotArea.top = 15
             .PlotArea.Height = .ChartArea.Height - 15
             
         End With
@@ -1960,3 +1948,177 @@ Sub EuroTRQuartileChart()
     Cells(1, 1).Select
     
 End Sub
+
+Sub InvTypeGrossChart()
+
+    Dim MySheet                 As Worksheet
+    Dim MyChart()               As Chart
+    Dim ChartHeight, ChartWidth As Long
+    Dim ChartLoc(), ChartData   As Range
+    Dim Countries()             As Range
+    Dim NumCtry, NumType        As Integer
+    Dim i, j                    As Integer
+    Dim Axis                    As Variant
+    Dim Start, DataEnd          As Range
+    Dim Headers                 As Range
+    
+    
+    Set MySheet = ActiveSheet
+    Set DataEnd = Cells(Rows.Count, 1).End(xlUp).Offset(1, 0)
+    Set Headers = Range(Cells(1, 3), Cells(1, 3).End(xlToRight))
+    
+    ' Get type & country count
+    For i = 1 To 2
+        With Range(Cells(1, i), Cells(1, i).End(xlDown))
+            .AdvancedFilter Action:=xlFilterInPlace, Unique:=True
+            If i = 1 Then NumCtry = .SpecialCells(xlCellTypeVisible).Cells.Count - 1
+            If i = 2 Then NumType = .SpecialCells(xlCellTypeVisible).Cells.Count - 1
+            MySheet.ShowAllData
+        End With
+    Next i
+    
+    ' Set array lengths
+    ReDim Countries(1 To NumCtry)
+    ReDim ChartLoc(1 To NumCtry)
+    ReDim MyChart(1 To NumCtry)
+    
+    ' Assign ranges to Countries
+    For i = 1 To NumCtry
+        Set Start = Cells(1, 1).Offset(1 + NumType * (i - 1), 1)
+        Set Countries(i) = Range(Start, Start.End(xlToRight).Offset(NumType - 1, 0))
+    Next i
+
+    ' Set Chart location params
+    ChartWidth = 5
+    ChartHeight = 28
+    For i = 1 To NumCtry
+        Set Start = DataEnd.Offset(2 + (i - 1) * (ChartHeight + 1), 0)
+        Set ChartLoc(i) = Range(Start, Start.Offset(ChartHeight - 1, ChartWidth - 1))
+    Next i
+
+    ' Create charts
+    For i = 1 To NumCtry
+    
+        Set ChartData = Countries(i)
+        Set MyChart(i) = MySheet.Shapes.AddChart(xlLine).Chart
+        
+        With MyChart(i)
+        
+            .SetSourceData Source:=ChartData
+            For j = 1 To NumType
+                .SeriesCollection(j).XValues = Headers
+            Next j
+            
+            ' Set chart location
+            With .Parent
+                .top = ChartLoc(i).top
+                .left = ChartLoc(i).left
+                .Height = ChartLoc(i).Height
+                .Width = ChartLoc(i).Width
+            End With
+            
+            ' Axes
+            ' Create secondary axis
+            .HasAxis(xlValue, xlSecondary) = True
+            .SeriesCollection(1).AxisGroup = xlSecondary
+            
+            For Each Axis In Array(.Axes(xlValue, xlPrimary), .Axes(xlValue, xlSecondary))
+                
+                With Axis
+                    .MajorGridlines.Delete
+                    .TickLabels.NumberFormat = "0%"
+                    .HasDisplayUnitLabel = False
+                    
+                    ' Ensure two vertical axes min/max agree
+                    .MinimumScale = Application.WorksheetFunction.Min( _
+                        MyChart(i).Axes(xlValue, xlPrimary).MinimumScale, _
+                        MyChart(i).Axes(xlValue, xlSecondary).MinimumScale)
+                    .MaximumScale = Application.WorksheetFunction.Max( _
+                        MyChart(i).Axes(xlValue, xlPrimary).MaximumScale, _
+                        MyChart(i).Axes(xlValue, xlSecondary).MaximumScale)
+                    
+                End With
+                
+            Next Axis
+            
+            ' Legend & Title
+            .HasTitle = True
+            .ChartTitle.text = Join(Array(Countries(i)(1, 1).Offset(0, -1).Value & ":", _
+                "Share of Long-Term Fund Sales by Fund Type", _
+                Headers(1, 1).Value, "To", Headers(1, Headers.Columns.Count)), " ")
+            .Legend.Position = xlLegendPositionBottom
+            
+            ' Colors
+            For j = 1 To NumType
+            
+            ' Colors (Bond, Equity, Other, Mixed)
+                If j = 1 Then
+                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(79, 129, 189)
+                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(79, 129, 189)
+                ElseIf j = 2 Then
+                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(146, 210, 198)
+                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
+                ElseIf j = 3 Then
+                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(190, 115, 102)
+                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(190, 115, 102)
+                ElseIf j = 4 Then
+                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(199, 199, 199)
+                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(199, 199, 199)
+                End If
+                    
+                .SeriesCollection(j).Smooth = True
+                
+            Next j
+            
+            
+        
+        End With
+    
+    Next i
+
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
