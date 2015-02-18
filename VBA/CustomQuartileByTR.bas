@@ -19,7 +19,7 @@ Sub BuildCustomQuarterlyTR(ByRef custText As String, ByRef Periods As Long, Opti
     
     Application.ScreenUpdating = False  ' To boost performance
     
-    nRow = Cells(Rows.Count, 1).End(xlUp).Row
+    nRow = Cells(Rows.Count, 1).End(xlUp).row
     nCol = Cells(1, Columns.Count).End(xlToLeft).Column
     
     ' Clear extraneous
@@ -112,10 +112,10 @@ Sub CustomTRQuartiles(ByRef custText As String, Yrs As Long, Optional Cutoff As 
     Set Area(1, 1) = Cells(1, 1)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count)).Delete
+    Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count)).Delete
     Range(Cells(1, 1), Cells(Rows.Count, Columns.Count)).ClearFormats
     
     ' Specify ranges for Monthly WAE, CB & Local measures
@@ -160,7 +160,7 @@ Sub CustomTRQuartiles(ByRef custText As String, Yrs As Long, Optional Cutoff As 
     Set CB = Nothing
     
     Range(Columns(Cells(1, 1).End(xlToRight).Column + 1), Columns(Columns.Count)).Clear
-    Range(Rows(Cells(1, 1).End(xlDown).Row + 1), Rows(Rows.Count)).Clear
+    Range(Rows(Cells(1, 1).End(xlDown).row + 1), Rows(Rows.Count)).Clear
     
     Range(Columns(Quart.Column + 3 * Periods), Columns(Columns.Count)).Clear
     Set Quart = Nothing
@@ -184,10 +184,10 @@ Sub CustomAggByQuartile(ByRef Periods As Long, ByRef custText As String)
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -283,7 +283,7 @@ Sub CustomTRQuartChart(ByRef Periods As Long)
     Set Area(1, 1) = Cells(2, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     Set DataArea = Range(Area(1, 1), Area(2, 2))
     
     ' Set Chart location params
@@ -318,8 +318,8 @@ Sub CustomTRQuartChart(ByRef Periods As Long)
         
         ' Set chart location
         With .Parent
-            .Top = ChartLoc.Top
-            .Left = ChartLoc.Left
+            .top = ChartLoc.top
+            .left = ChartLoc.left
             .Height = ChartLoc.Height
             .Width = ChartLoc.Width
         End With
@@ -336,8 +336,8 @@ Sub CustomTRQuartChart(ByRef Periods As Long)
             .AxisTitle.Font.Italic = msoTrue
             .AxisTitle.Font.Bold = msoFalse
             .AxisTitle.Orientation = xlHorizontal
-            .AxisTitle.Top = 0
-            .AxisTitle.Left = 8
+            .AxisTitle.top = 0
+            .AxisTitle.left = 8
         End With
         
         With .Axes(xlCategory)
@@ -349,8 +349,8 @@ Sub CustomTRQuartChart(ByRef Periods As Long)
         ' Legend
         With .Legend
             .Position = xlLegendPositionBottom
-            .Top = .Top - 30
-            .Left = .Left - 25
+            .top = .top - 30
+            .left = .left - 25
             .Width = 250
         End With
         
@@ -405,9 +405,9 @@ Sub CustomTRQuartChart(ByRef Periods As Long)
         End With
         
         ' Resize PlotArea
-        .PlotArea.Left = .ChartArea.Left
+        .PlotArea.left = .ChartArea.left
         .PlotArea.Width = .ChartArea.Width - 10
-        .PlotArea.Top = 15
+        .PlotArea.top = 15
         .PlotArea.Height = .ChartArea.Height - 15
         
     End With

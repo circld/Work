@@ -77,16 +77,16 @@ Sub EditHeader(Optional Prefix As String, Optional Suffix As String)
     Dim ActSheet    As Worksheet
     Dim HeaderRange As Range
     ' If throwing errors, ensure that Tools/References/Microsoft VBScript Regular Expressions is checked
-    Dim RegEx       As New VBScript_RegExp_55.RegExp
+    Dim Regex       As New VBScript_RegExp_55.RegExp
     Dim Matches
     
     Set ActSheet = ActiveSheet
     Set HeaderRange = Selection
     
-    RegEx.Pattern = ".*\[(.*)\].*"
+    Regex.Pattern = ".*\[(.*)\].*"
     For Each Header In HeaderRange.Cells
-        Set Matches = RegEx.Execute(Header.Value)
-        If RegEx.test(Header.Value) Then
+        Set Matches = Regex.Execute(Header.Value)
+        If Regex.test(Header.Value) Then
             Header.Value = Join(Array(Prefix, Matches(0).SubMatches(0), Suffix), " ")
             Header.Value = LTrim(RTrim(Header.Value))
         End If
@@ -110,8 +110,8 @@ Sub Aggregate(ByVal NumCols As Long, ByVal func As String)
     Set DataRng = Selection
     
     ' Set temporary data destination
-    Set tmpRng = Range(Cells(DataRng.Rows(1).Row, Columns.Count), _
-                       Cells(DataRng.Rows(DataRng.Rows.Count).Row, Columns.Count))
+    Set tmpRng = Range(Cells(DataRng.Rows(1).row, Columns.Count), _
+                       Cells(DataRng.Rows(DataRng.Rows.Count).row, Columns.Count))
     
     ' Aggregate
     iter = 1
@@ -167,7 +167,7 @@ Sub GlobalNetGrossData()
     Months = 13  ' Thirteen dates in series
     
     ' Define data area
-    LastRow = Range("F" & Rows.Count).End(xlUp).Row
+    LastRow = Range("F" & Rows.Count).End(xlUp).row
     If Cells(LastRow, 1).Value = "" Then
         FirstCol = Cells(LastRow, 1).End(xlToRight).Column
     Else
@@ -176,7 +176,7 @@ Sub GlobalNetGrossData()
     If Cells(1, 1).Value <> "" Then
         FirstRow = 2
     Else
-        FirstRow = Cells(1, 1).End(xlDown).Row + 1
+        FirstRow = Cells(1, 1).End(xlDown).row + 1
     End If
     LastCol = FirstCol + Months - 1 ' Last Header column
     
@@ -264,7 +264,7 @@ Sub GlobalGrossCatData()
     Months = 13  ' Thirteen dates in series
     
     ' Define data area
-    LastRow = Range("F" & Rows.Count).End(xlUp).Row
+    LastRow = Range("F" & Rows.Count).End(xlUp).row
     If Cells(LastRow, 1).Value = "" Then
         FirstCol = Cells(LastRow, 1).End(xlToRight).Column
     Else
@@ -273,7 +273,7 @@ Sub GlobalGrossCatData()
     If Cells(1, 1).Value <> "" Then
         FirstRow = 2
     Else
-        FirstRow = Cells(1, 1).End(xlDown).Row + 1
+        FirstRow = Cells(1, 1).End(xlDown).row + 1
     End If
     LastCol = FirstCol + Months - 1 ' Last Header column
     
@@ -317,7 +317,7 @@ Sub NetAvgPerfData()
     Months = 13  ' Thirteen dates in series
     
     ' Define data area
-    LastRow = Range("F" & Rows.Count).End(xlUp).Row
+    LastRow = Range("F" & Rows.Count).End(xlUp).row
     If Cells(LastRow, 1).Value = "" Then
         FirstCol = Cells(LastRow, 1).End(xlToRight).Column
     Else
@@ -326,7 +326,7 @@ Sub NetAvgPerfData()
     If Cells(1, 1).Value <> "" Then
         FirstRow = 2
     Else
-        FirstRow = Cells(1, 1).End(xlDown).Row + 1
+        FirstRow = Cells(1, 1).End(xlDown).row + 1
     End If
     LastCol = FirstCol + Months - 1 ' Last Header column
     
@@ -367,7 +367,7 @@ Sub RedempCalcData()
     Months = 13  ' Thirteen dates in series
     
     ' Define data area
-    LastRow = Range("F" & Rows.Count).End(xlUp).Row
+    LastRow = Range("F" & Rows.Count).End(xlUp).row
     If Cells(LastRow, 1).Value = "" Then
         FirstCol = Cells(LastRow, 1).End(xlToRight).Column
     Else
@@ -376,7 +376,7 @@ Sub RedempCalcData()
     If Cells(1, 1).Value <> "" Then
         FirstRow = 2
     Else
-        FirstRow = Cells(1, 1).End(xlDown).Row + 1
+        FirstRow = Cells(1, 1).End(xlDown).row + 1
     End If
     LastCol = FirstCol + Months - 1 ' Last Header column
     
@@ -444,7 +444,7 @@ Sub PTopBottomData()
     
     FirstRow = 2
     FirstCol = 2
-    LastRow = Cells(1, 1).End(xlDown).Row
+    LastRow = Cells(1, 1).End(xlDown).row
     
     Range(Rows(LastRow + 1), Rows(Rows.Count)).Delete
 
@@ -458,11 +458,11 @@ Sub PTopBottomData()
         
     ' Select Top 5 & Bottom 5
     Set top = Range(Cells(FirstRow, FirstCol - 1), Cells(FirstRow + 4, LastCol))
-    Temp1 = top.Rows(top.Rows.Count).Row
+    Temp1 = top.Rows(top.Rows.Count).row
     Temp2 = top.Columns(top.Columns.Count).Column
     
     ' Set LastRow to last non-null Gross Sale value
-    LastRow = Cells(FirstRow, FirstCol).End(xlDown).Row
+    LastRow = Cells(FirstRow, FirstCol).End(xlDown).row
     Range(Rows(LastRow + 1), Rows(Rows.Count)).ClearContents
     Cells(FirstRow, FirstCol).Select
     Range(Rows(Temp1 + 1), Rows(Temp1 + 3)).ClearContents
@@ -532,7 +532,7 @@ Sub PTopBottomData()
     Range(Rows(1), Rows(Rows.Count)).AutoFit
     Range(Columns(1), Columns(Columns.Count)).AutoFit
     
-    LastRow = Bottom.Rows(Bottom.Rows.Count + 2).Row
+    LastRow = Bottom.Rows(Bottom.Rows.Count + 2).row
     
     Set All = Range(Cells(LastRow, 1), Cells(LastRow, LastCol))
     All(1, 1).Value = Label(6)
@@ -581,19 +581,24 @@ Sub MTopBottomData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear unnecessary rows & columns
-    Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count)).Delete
+    Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count)).Delete
     Columns(3).Delete
     Columns(4).Delete
     
     ' Get rid of all null/zero rows
-    Range(Cells(2, Area(1, 2).Column + 1), Cells(Area(2, 2).Row, Area(2, 2).Column + 1)).Formula = _
+    Range(Cells(2, Area(1, 2).Column + 1), Cells(Area(2, 2).row, Area(2, 2).Column + 1)).Formula = _
         "=IF(SUM(RC[-3]:RC[-1]) = 0, 1, 0)"
     Call RemoveTrue(Area)
-        
+    
     Columns(Area(1, 2).Column + 1).Delete
+    
+    Set Area(1, 1) = Cells(1, 1)
+    Set Area(1, 2) = Area(1, 1).End(xlToRight)
+    Set Area(2, 1) = Area(1, 1).End(xlDown)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Get country count & instantiate CMetaData items with names
     With Range(Area(1, 1), Area(2, 1))
@@ -604,7 +609,7 @@ Sub MTopBottomData()
         For Each CountryName In Range(Area(1, 1).Offset(1, 0), Area(2, 1)).SpecialCells(xlCellTypeVisible).Cells
             Set Countries(i) = New CMetaData
             Countries(i).Name = CountryName.Value
-            Countries(i).FirstRow = CountryName.Row
+            Countries(i).FirstRow = CountryName.row
             i = i + 1
         Next CountryName
         MySheet.ShowAllData
@@ -631,7 +636,7 @@ Sub MTopBottomData()
         ' Debugging Taiwan
         
         Count = MySheet.AutoFilter.Range.Columns(1).SpecialCells(xlCellTypeVisible).Count - 1
-        Countries(i).LastRow = MySheet.AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible)(Count, 1).Row
+        Countries(i).LastRow = MySheet.AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible)(Count, 1).row
         Countries(i).FirstCol = Area(1, 1).Column
         Countries(i).LastCol = Area(1, 2).Column
         
@@ -694,23 +699,23 @@ Sub MktShareData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     HLabels(1) = "3 Mth"
     HLabels(2) = "Prior 12 Mth"
     HLabels(3) = "Prior 13 Mth"
     HLabels(4) = "Prior 14 Mth"
     
     ' Clear unnecessary rows & columns
-    Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count)).Delete
+    Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count)).Delete
     
     ' Get rid of all null/zero rows
-    Range(Cells(2, Area(1, 2).Column + 1), Cells(Area(2, 2).Row, Area(2, 2).Column + 1)).Formula = _
+    Range(Cells(2, Area(1, 2).Column + 1), Cells(Area(2, 2).row, Area(2, 2).Column + 1)).Formula = _
         "=IF(SUM(RC[-3]:RC[-1]) = 0, 1, 0)"
     Call RemoveTrue(Area)
     
     ' Redefine Area params since deleting rows changed data range
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     Columns(Area(2, 2).Column + 1).Delete
     
@@ -723,7 +728,7 @@ Sub MktShareData()
     For Each FType In Array("Bond", "Equity")
     
         Set Area(2, 1) = Area(1, 1).End(xlDown)
-        Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+        Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
         
         ' Define anonymization by fund type
         If FType = "Bond" Then
@@ -745,23 +750,23 @@ Sub MktShareData()
                 Criteria1:=FType
             
             Set tmpRow = Rows( _
-                .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows(6).Row _
+                .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows(6).row _
                 )
             tmpRow.Copy
             tmpRow.Insert Shift:=xlDown
             tmpRow.Offset(-1, 0).Cells(1, 2).Value = "Other Managers"
-            Range(Cells(tmpRow.Offset(-1, 0).Row, 3), _
-                Cells(tmpRow.Offset(-1, 0).Row, Area(1, 2).Column)).Formula = _
+            Range(Cells(tmpRow.Offset(-1, 0).row, 3), _
+                Cells(tmpRow.Offset(-1, 0).row, Area(1, 2).Column)).Formula = _
                 "=SUM(R[1]C:R[" & .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows.Count - 6 & "]C)"
             
-            Set tmpRow = Rows(.AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows(1).Row)
+            Set tmpRow = Rows(.AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows(1).row)
             If FType = "Equity" Then
                 tmpRow.Insert Shift:=xlDown
             End If
             
             ' Anon Names
             For i = 1 To 6
-                Cells(tmpRow.Row - 1 + i, Area(1, 2).Offset(0, 3).Column).Value = _
+                Cells(tmpRow.row - 1 + i, Area(1, 2).Offset(0, 3).Column).Value = _
                     AnonNames(i)
             Next i
             
@@ -786,6 +791,7 @@ Sub MktShareData()
     
 End Sub
 
+
 Sub BubbleData(Optional TopN As Long = 10)
 
     Dim Area(2, 2), tmpCell         As Range
@@ -797,11 +803,11 @@ Sub BubbleData(Optional TopN As Long = 10)
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     BlankFormula = "=AND("
     
     ' Clear extraneous Dash output
-    Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count)).Delete
+    Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count)).Delete
     
     ' Test for blanks (generalized over cols != col(1)
     Count = Range(Area(1, 1).Offset(0, 1), Area(1, 2)).Columns.Count
@@ -819,7 +825,7 @@ Sub BubbleData(Optional TopN As Long = 10)
         BlankFormula
         
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Remove any rows with blanks
     With MySheet
@@ -832,7 +838,7 @@ Sub BubbleData(Optional TopN As Long = 10)
     End With
     
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Sort Measure Column
     Range(Area(1, 1), Area(2, 2)).Sort _
@@ -844,7 +850,7 @@ Sub BubbleData(Optional TopN As Long = 10)
     Area(2, 2).Select
     Range(Area(1, 1).Offset(TopN + 1, 0), Area(2, 2)).Delete
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Convert to WAE columns to pct
     Set tmpCell = Area(1, 2).Offset(0, 1)
@@ -883,14 +889,14 @@ Sub LvCBData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     Area(2, 1).Offset(1, 0).Value = "Benelux"
-    Rows(Area(2, 1).Offset(2, 0).Row).Insert
+    Rows(Area(2, 1).Offset(2, 0).row).Insert
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -898,8 +904,8 @@ Sub LvCBData()
     End With
     
     Set DataArea = New CMetaData
-    DataArea.FirstRow = Area(1, 1).Offset(1, 0).Row  ' ignore header row
-    DataArea.LastRow = Area(2, 1).Row
+    DataArea.FirstRow = Area(1, 1).Offset(1, 0).row  ' ignore header row
+    DataArea.LastRow = Area(2, 1).row
     DataArea.FirstCol = Area(1, 1).Column
     DataArea.LastCol = Area(1, 2).Column
 
@@ -944,9 +950,9 @@ Sub ManagerByCtryData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -1067,10 +1073,10 @@ Sub GrossByRegionData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -1117,10 +1123,10 @@ Sub EquityCatSalesData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -1132,7 +1138,7 @@ Sub EquityCatSalesData()
     Headers.Select
     Call EditHeader
     
-    With Range(Rows(Area(1, 1).Row), Rows(Area(2, 2).Row))
+    With Range(Rows(Area(1, 1).row), Rows(Area(2, 2).row))
         .ClearFormats
         .AutoFit
         .Font.Size = 8
@@ -1169,10 +1175,10 @@ Sub MSRegionData(Optional NumRegions As Long = 2)
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -1185,7 +1191,7 @@ Sub MSRegionData(Optional NumRegions As Long = 2)
     Call EditHeader
     
     ' Cleaning (clear formats + autofit)
-    With Range(Rows(Area(1, 1).Row), Rows(Area(2, 2).Row))
+    With Range(Rows(Area(1, 1).row), Rows(Area(2, 2).row))
         .ClearFormats
         .AutoFit
         .Font.Size = 8
@@ -1331,10 +1337,10 @@ Sub MTopBottomTableData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -1350,7 +1356,7 @@ Sub MTopBottomTableData()
         For Each CountryName In Range(Area(1, 1).Offset(1, 0), Area(2, 1)).SpecialCells(xlCellTypeVisible).Cells
             Set Countries(i) = New CMetaData
             Countries(i).Name = CountryName.Value
-            Countries(i).FirstRow = CountryName.Row
+            Countries(i).FirstRow = CountryName.row
             i = i + 1
         Next CountryName
         MySheet.ShowAllData
@@ -1494,7 +1500,7 @@ Sub MTopBottomTableData()
     End With
     
     Range(Columns(Area(2, 2).Column + 1), Columns(Columns.Count)).ClearFormats
-    Range(Rows(Area(2, 2).Row + 1), Rows(Rows.Count)).ClearFormats
+    Range(Rows(Area(2, 2).row + 1), Rows(Rows.Count)).ClearFormats
     
     ' Remove negative share pct
     For Each c In Range(Area(1, 1), Area(2, 2)).Columns(5).Cells
@@ -1528,10 +1534,10 @@ Sub EuroTRQuartileData()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
 
     ' Clear extraneous
-    With Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count))
+    With Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .UnMerge
@@ -1637,10 +1643,10 @@ Sub TrailTRData(Yrs As Long, Optional Cutoff As Long)
     Set Area(1, 1) = Cells(1, 1)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Clear extraneous
-    Range(Rows(Area(2, 1).Row + 1), Rows(Rows.Count)).Delete
+    Range(Rows(Area(2, 1).row + 1), Rows(Rows.Count)).Delete
     Range(Cells(1, 1), Cells(Rows.Count, Columns.Count)).ClearFormats
     
     ' Specify ranges for Monthly WAE, CB & Local measures
@@ -1718,7 +1724,7 @@ Sub TrailTRData(Yrs As Long, Optional Cutoff As Long)
     Set AvgTR = Nothing
     
     Range(Columns(Cells(1, 1).End(xlToRight).Column + 1), Columns(Columns.Count)).Clear
-    Range(Rows(Cells(1, 1).End(xlDown).Row + 1), Rows(Rows.Count)).Clear
+    Range(Rows(Cells(1, 1).End(xlDown).row + 1), Rows(Rows.Count)).Clear
     
     CB.Offset(-1, 0).Rows(1).Copy Quart.Offset(-1, 0).Rows(1)
     CB.Offset(-1, 0).Rows(1).Copy Quart.Offset(-1, Months).Rows(1)
@@ -1739,8 +1745,12 @@ End Sub
 Sub InvTypeGrossData()
 
     Dim DataRange As Range
+    Dim Regex     As New VBScript_RegExp_55.RegExp
+    Dim Matches
     
     Set DataRange = Range(Cells(1, 1), Cells(1, 1).End(xlDown).End(xlToRight))
+    Regex.Pattern = ".*Market.*"
+    Set Matches = Regex.Execute(DataRange(1, 1).Value)
     
     ' Clear extraneous
     With Range(Rows(DataRange.Rows.Count + 1), Rows(Rows.Count))
@@ -1752,5 +1762,145 @@ Sub InvTypeGrossData()
     ' Rename headers
     DataRange.Rows(1).Select
     EditHeader
+    
+    ' If no market column, then add Total into first column
+    If Not Regex.test(DataRange(1, 1).Value) Then
+        Columns(1).Insert
+        Cells(1, 1).Value = "Origination Market (SI)"
+        Range(Cells(2, 1), Cells(DataRange.Rows.Count, 1)).Value = "Total"
+    End If
+    
+End Sub
+
+Sub ActiveETFData()
+
+    Dim MySheet         As Worksheet
+    Dim OrigRng         As Range
+    Dim FinalRng, Vis   As Range
+    Dim tmpRng          As Range
+    Dim Cats            As New Scripting.Dictionary
+    Dim tmpArr(1 To 2)  As Double
+    Dim Val             As Variant
+    Dim rec             As Variant
+    Dim Regex           As New VBScript_RegExp_55.RegExp
+    Dim Match
+    
+    Set MySheet = ActiveSheet
+    Set OrigRng = Range(Cells(1, 1), Cells(1, 1).End(xlDown).End(xlToRight))
+    
+    ' Clear extraneous
+    With Range(Rows(OrigRng.Rows.Count + 1), Rows(Rows.Count))
+        .ClearContents
+        .ClearFormats
+        .Rows.AutoFit
+    End With
+    
+    ' Copy unique category names
+    With OrigRng.Columns(1)
+        .AdvancedFilter xlFilterInPlace, Unique:=True
+        .SpecialCells(xlCellTypeVisible).Cells.Copy
+        OrigRng.Columns(1).Offset(0, OrigRng.Columns.Count).PasteSpecial xlPasteAll
+        .AdvancedFilter xlFilterInPlace
+    End With
+    
+    Set FinalRng = Range(Selection(1, 1).Offset(1, 0), Selection.End(xlDown))
+    
+    ' Grab data for Fund Category
+    For Each Val In FinalRng.Cells.Value
+    
+        With OrigRng
+            .AutoFilter Field:=1, Criteria1:=Val, VisibleDropDown:=False
+            Set Vis = OrigRng.Offset(1, 0).Resize(OrigRng.Rows.Count - 1).SpecialCells(xlCellTypeVisible)
+            For Each rec In Vis.Rows
+                If rec.Cells(2).Value = "Yes" Then
+                    tmpArr(1) = rec.Cells(3).Value
+                Else
+                    tmpArr(2) = rec.Cells(3).Value
+                End If
+            Next rec
+        
+        End With
+        
+        Cats.Add Val, tmpArr
+        Erase tmpArr
+        
+    Next Val
+    
+    MySheet.AutoFilterMode = False
+    
+    ' Clear old data, adjust headers
+    OrigRng.Offset(1, 0).Resize(OrigRng.Rows.Count - 1).ClearContents
+    OrigRng(1, 3).Select
+    EditHeader
+    OrigRng(1, 2).Value = "ETF " & OrigRng(1, 3).Value
+    OrigRng(1, 3).Value = "Non-ETF " & OrigRng(1, 3).Value
+    OrigRng(1, 4).ClearContents
+    FinalRng.Cut FinalRng.Offset(0, -3)
+    Set FinalRng = Range(Cells(2, 1), Cells(2, 1).End(xlDown))
+    Set tmpRng = Range(FinalRng.End(xlDown).Offset(1, 0), _
+        FinalRng.End(xlDown).Offset(1, 2))
+    tmpRng.Cells(1, 1).Value = "Mixed"
+    
+    ' Paste values & combinen mixed categories
+    Regex.Pattern = "Mixed.*"
+    
+    For Each rec In Range(FinalRng, FinalRng.Offset(0, 2)).Rows
+        Set Matches = Regex.Execute(rec.Cells(1, 1).Value)
+        If Regex.test(rec.Cells(1, 1).Value) Then
+            tmpRng.Cells(1, 2).Value = tmpRng.Cells(1, 2).Value + _
+                Cats(rec.Cells(1, 1).Value)(1)
+            tmpRng.Cells(1, 3).Value = tmpRng.Cells(1, 3).Value + _
+                Cats(rec.Cells(1, 1).Value)(2)
+        Else
+            rec.Cells(1, 2).Value = Cats(rec.Cells(1, 1).Value)(1)  ' Yes
+            rec.Cells(1, 3).Value = Cats(rec.Cells(1, 1).Value)(2)  ' No
+        End If
+    Next rec
+        
+    Set Cats = Nothing
+    
+    ' Move Mixed Total up
+    Range(Rows(tmpRng(1, 2).End(xlUp).row + 1), Rows(tmpRng(1, 2).row - 1)).Delete
+    
+    ' Clean up
+    Set FinalRng = Range(Cells(1, 1), Cells(1, 1).End(xlDown).End(xlToRight))
+    FinalRng.Columns.AutoFit
+    Cells(1, 1).Select
+    
+End Sub
+
+Sub MarketNetTblData()
+
+    Dim tblRng          As Range
+    Dim HeaderCell      As Variant
+    Dim Regex           As New VBScript_RegExp_55.RegExp
+    Dim Match           As VBScript_RegExp_55.MatchCollection
+    Dim MonthText       As String
+    
+    Set tblRng = Cells(1, 1).CurrentRegion
+    
+    ' Clear extraneous
+    With Range(Rows(tblRng.Rows.Count), Rows(Rows.Count))
+        .ClearContents
+        .ClearFormats
+        .AutoFit
+    End With
+    
+    ' Edit headers
+    For Each HeaderCell In tblRng.Rows(1).Cells
+        HeaderCell.Value = Replace(HeaderCell.Value, " (SI)", "")
+                
+        ' Grab date
+        Regex.Pattern = _
+            "((?:Local|Cross Border) Net Sales EUR)\s\[(\d \w{2,3})-(\d{1,2})/(\d\d)\]"
+        Set Match = Regex.Execute(HeaderCell.Value)
+        If Regex.test(HeaderCell.Value) Then
+            MonthText = MonthName(Match(0).SubMatches(2), True) & " " & Match(0).SubMatches(3)
+            HeaderCell.Value = Match(0).SubMatches(0) & " " & MonthText
+            If Match(0).SubMatches(1) = "1 Yr" Then
+                HeaderCell.Value = HeaderCell.Value + " Past Yr"
+            End If
+        End If
+    Next HeaderCell
     
 End Sub

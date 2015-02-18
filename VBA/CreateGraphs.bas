@@ -437,8 +437,9 @@ Sub RedempCalcChart()
                 .Name = Series1(i, 1).Offset(0, -1)
                 .Values = Series1.Rows(i)
                 .XValues = "='" & MySheet.Name & "'!B1:N1"
+                .ChartType = xlLineMarkers
+                .Smooth = True
             End With
-            .SeriesCollection(i).ChartType = xlLine
         Next i
         .SeriesCollection(4).Name = "Total"
 
@@ -463,23 +464,37 @@ Sub RedempCalcChart()
         
         ' Colors
         ' Bond
-        With .SeriesCollection(1).Format.Line
-            .ForeColor.RGB = RGB(12, 74, 116)
+        With .SeriesCollection(1)
+            .MarkerStyle = 8
+            .MarkerSize = 4
+            .Format.Line.ForeColor.RGB = RGB(12, 74, 116)
+            .Format.Fill.ForeColor.RGB = RGB(12, 74, 116)
+            .Format.Fill.BackColor.RGB = RGB(12, 74, 116)
         End With
         
         ' Equity
-        With .SeriesCollection(2).Format.Line
-            .ForeColor.RGB = RGB(146, 210, 198)
+        With .SeriesCollection(2)
+            .MarkerStyle = 8
+            .MarkerSize = 4
+            .Format.Line.ForeColor.RGB = RGB(146, 210, 198)
+            .Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
+            .Format.Fill.BackColor.RGB = RGB(146, 210, 198)
         End With
         
         ' Mixed
-        With .SeriesCollection(3).Format.Line
-            .ForeColor.RGB = RGB(214, 236, 242)
+        With .SeriesCollection(3)
+            .MarkerStyle = 8
+            .MarkerSize = 4
+            .Format.Line.ForeColor.RGB = RGB(228, 108, 10)
+            .Format.Fill.ForeColor.RGB = RGB(228, 108, 10)
+            .Format.Fill.BackColor.RGB = RGB(228, 108, 10)
+            .Format.Line.Transparency = 0.2
+            .Format.Fill.Transparency = 0.2
         End With
         
         ' Total
         With .SeriesCollection(4).Format.Fill
-            .Patterned msoPattern20Percent
+            .Patterned msoPatternDarkUpwardDiagonal
             .ForeColor.RGB = RGB(199, 199, 199)
         End With
         
@@ -512,19 +527,19 @@ Sub MTopBottomChart()
     Set Area(2, 1) = Cells(Rows.Count, 1).End(xlUp)
     Set Area(1, 1) = Cells(2, 1)  ' header row; blank row before data
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Set chart size
     ChartHeight = 12    ' in rows
     ChartWidth = 4      ' in cols
     
-    BlockCount = Area(2, 1).Row
+    BlockCount = Area(2, 1).row
     Count = 0
     
     ' Find first row of each data block
     While BlockCount > 2
         Count = Count + 1
-        BlockCount = Cells(BlockCount, 1).End(xlUp).End(xlUp).Row
+        BlockCount = Cells(BlockCount, 1).End(xlUp).End(xlUp).row
     Wend
     
     ' To handle arbitrary number of countries
@@ -532,19 +547,19 @@ Sub MTopBottomChart()
     ReDim MyChart(Count, 2)  ' 2 charts per country: top (1), bottom (2)
     
     ' Define Class CMetaData for each country
-    BlockCount = Area(2, 1).Row  ' last row of last block
+    BlockCount = Area(2, 1).row  ' last row of last block
     For i = 1 To Count
         j = Count + 1 - i  ' counting down since starting @ bottom
         Set Countries(j) = New CMetaData
         Countries(j).LastRow = BlockCount
         Countries(j).LastCol = Area(1, 2).Column
         ' Move row counter to first row of block
-        BlockCount = Cells(BlockCount, 1).End(xlUp).Row
+        BlockCount = Cells(BlockCount, 1).End(xlUp).row
         Countries(j).FirstRow = BlockCount
         Countries(j).FirstCol = Area(1, 1).Column
         Countries(j).Name = Cells(BlockCount, 1).Value
         ' Move to last row of next block
-        BlockCount = Cells(BlockCount, 1).End(xlUp).Row
+        BlockCount = Cells(BlockCount, 1).End(xlUp).row
     Next i
     
     For i = 1 To Count
@@ -590,8 +605,8 @@ Sub MTopBottomChart()
                 End If
                 
                 ' Rename series
-                .FullSeriesCollection(1).Name = Cells(Area(1, 1).Row, 4).Value
-                .FullSeriesCollection(2).Name = Cells(Area(1, 1).Row, 5).Value
+                .FullSeriesCollection(1).Name = Cells(Area(1, 1).row, 4).Value
+                .FullSeriesCollection(2).Name = Cells(Area(1, 1).row, 5).Value
                 
                 ' Chart formatting bits & bobs
                 .ChartGroups(1).GapWidth = 75
@@ -645,7 +660,7 @@ Sub MktShareChart()
     Set Area(2, 1) = Cells(Rows.Count, 1).End(xlUp)
     Set Area(1, 1) = Cells(1, 1)  ' header row; blank row before data
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     FNames(1) = "Bond"
     FNames(2) = "Equity"
     ChartWidth = 8
@@ -661,9 +676,9 @@ Sub MktShareChart()
             .Range(Area(1, 1), Area(2, 2)).AutoFilter _
                 Field:=Area(1, 1).Column, Criteria1:=FNames(i)
             FundTypes(i).FirstRow = _
-                .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows(1).Row
+                .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible).Rows(1).row
             FundTypes(i).LastRow = _
-                .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible)(1, 1).End(xlDown).Row
+                .AutoFilter.Range.Offset(1, 0).SpecialCells(xlCellTypeVisible)(1, 1).End(xlDown).row
             FundTypes(i).FirstCol = Area(1, 1).Column
             FundTypes(i).LastCol = Area(1, 2).Column
             
@@ -782,14 +797,14 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight).Offset(0, -1)  ' ignore No Nulls column
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     AxisLabels(1) = "1-Year Return in Euro Weighted Average"  ' x-axis
     AxisLabels(2) = "YTD TR in Euro Weighted Average"  ' y-axis
     
     ' Instantiate & define DataArea
     Set DataArea = New CMetaData
-    DataArea.FirstRow = Area(1, 1).Offset(1, 0).Row
-    DataArea.LastRow = Area(2, 1).Row
+    DataArea.FirstRow = Area(1, 1).Offset(1, 0).row
+    DataArea.LastRow = Area(2, 1).row
     DataArea.FirstCol = Area(1, 1).Column
     DataArea.LastCol = Area(2, 2).Column
     
@@ -804,7 +819,7 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
         With MyChart
         
             ' Set chart location
-            With MyChart.Parent
+            With .Parent
             
                 .Height = ChartLoc.Height
                 .Width = ChartLoc.Width
@@ -865,6 +880,7 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
             
             ' Adjust for squished plot area
             Application.DisplayAlerts = False
+            
             With .PlotArea
                 .top = MyChart.ChartArea.top + 10
                 .left = MyChart.ChartArea.left
@@ -881,11 +897,11 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
             yLabel.TextFrame2.TextRange.Characters.text = yLabelText
             yLabel.TextFrame2.TextRange.Font.Size = 12
             Set Key = MyChart.Shapes.AddLabel(msoTextOrientationHorizontal, _
-                MyChart.PlotArea.left + MyChart.PlotArea.Width - 100, _
-                MyChart.PlotArea.top, _
-                120, 20)
+                MyChart.PlotArea.left + MyChart.PlotArea.Width - 150, _
+                MyChart.PlotArea.top, 120, 20)
             Key.TextFrame2.TextRange.Characters.text = "Bubble Size = Net Sales in Euro"
             Key.TextFrame2.TextRange.Font.Size = 12
+            Key.Height = 50
                 
         End With
         
@@ -905,13 +921,13 @@ Sub LvCBChart()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     ChartWidth = 8
     ChartHeight = 20
     
     Set DataArea = New CMetaData
-    DataArea.FirstRow = Area(1, 1).Offset(1, 0).Row  ' ignore header row
-    DataArea.LastRow = Area(2, 1).Row
+    DataArea.FirstRow = Area(1, 1).Offset(1, 0).row  ' ignore header row
+    DataArea.LastRow = Area(2, 1).row
     DataArea.FirstCol = Area(1, 1).Column
     DataArea.LastCol = Area(1, 2).Column
     
@@ -1002,7 +1018,7 @@ Sub ManagerByCtryChart()
     Set Area(1, 1) = Cells(2, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     Set DataRange = Range(Area(1, 1), Area(2, 2).Offset(0, -3))
     
     
@@ -1095,13 +1111,13 @@ Sub GrossByRegionChart()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     Set DataRange = Range(Area(1, 1), Area(2, 2))
     
     ' Chart params
     ChartWidth = 10
     ChartHeight = 20
-    Set startCell = Cells(Area(2, 1).Offset(7, 0).Row, 1)
+    Set startCell = Cells(Area(2, 1).Offset(7, 0).row, 1)
     Set ChartLoc = Range(startCell, _
         startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
@@ -1191,15 +1207,15 @@ Sub EquityCatSalesChart()
     Set Area(1, 1) = Cells(2, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Define Header range
     Set Headers = Range(Area(1, 1).Offset(0, 1), Area(1, 1).Offset(0, Months))
     Headers.Select
     
     ' Define DataRange
-    NetSales.FirstRow = Area(1, 1).Offset(1, 0).Row
-    NetSales.LastRow = Area(2, 1).Row
+    NetSales.FirstRow = Area(1, 1).Offset(1, 0).row
+    NetSales.LastRow = Area(2, 1).row
     NetSales.FirstCol = Area(1, 1).Offset(1, 1).Column
     NetSales.LastCol = Area(1, 1).Offset(1, Months).Column
     
@@ -1211,7 +1227,7 @@ Sub EquityCatSalesChart()
     ' Chart params
     ChartWidth = 12
     ChartHeight = 30
-    Set startCell = Cells(Area(2, 1).Offset(2, 0).Row, 1)
+    Set startCell = Cells(Area(2, 1).Offset(2, 0).row, 1)
     Set ChartLoc = Range(startCell, _
         startCell.Offset(ChartHeight - 1, ChartWidth - 1))
     
@@ -1402,14 +1418,14 @@ Sub ManagerBubbleChart(Optional TitleText As String = "")
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight).Offset(0, -1)  ' ignore No Nulls column
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     AxisLabels(1) = "1-Year Return in Euro Weighted Average"  ' x-axis
     AxisLabels(2) = "YTD TR in Euro Weighted Average"  ' y-axis
     
     ' Instantiate & define DataArea
     Set DataArea = New CMetaData
-    DataArea.FirstRow = Area(1, 1).Offset(1, 0).Row
-    DataArea.LastRow = Area(2, 1).Row
+    DataArea.FirstRow = Area(1, 1).Offset(1, 0).row
+    DataArea.LastRow = Area(2, 1).row
     DataArea.FirstCol = Area(1, 1).Column
     DataArea.LastCol = Area(2, 2).Column
     
@@ -1553,11 +1569,11 @@ Sub MSRegionChart(Optional kind As String = "countries")
     Set Area(1, 1) = Cells(2, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).Offset(0, 1).End(xlDown).Offset(0, -1)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     
     ' Calculate number of periods & Europe start row
     Months = Range(Cells(1, 1).End(xlToRight), Cells(1, 1).End(xlToRight).End(xlToRight)).Columns.Count - 1
-    tmpCell = Cells(Rows.Count, 1).End(xlUp).Row  ' Europe data start row
+    tmpCell = Cells(Rows.Count, 1).End(xlUp).row  ' Europe data start row
     
     ' Instantiate CMetaData objs
     For i = 1 To 2
@@ -1576,13 +1592,13 @@ Sub MSRegionChart(Optional kind As String = "countries")
     ' Define data ranges
     Set Headers = Range(Area(1, 1).Offset(0, 2), Area(1, 1).Offset(0, 1 + Months))
     
-    DataRange(1).FirstRow = Area(1, 1).Offset(1, 0).Row
+    DataRange(1).FirstRow = Area(1, 1).Offset(1, 0).row
     DataRange(1).LastRow = tmpCell - 1
     DataRange(1).FirstCol = Area(1, 1).Offset(0, 1).Column
     DataRange(1).LastCol = Area(1, 2).Column
 
     DataRange(2).FirstRow = tmpCell
-    DataRange(2).LastRow = Area(2, 1).Row
+    DataRange(2).LastRow = Area(2, 1).row
     DataRange(2).FirstCol = Area(1, 1).Offset(0, 1).Column
     DataRange(2).LastCol = Area(1, 2).Column
     
@@ -1677,50 +1693,31 @@ Sub MSRegionChart(Optional kind As String = "countries")
         End With
         
         ' Color
-        ' 5 stars = Green
+        ' 5 stars = Navy
         With .SeriesCollection(5).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.RGB = RGB(0, 176, 80)
-            .Solid
+            .ForeColor.RGB = RGB(12, 74, 116)
         End With
         
-        ' 4 stars = Navy Stipes
+        ' 4 stars = Teal
         With .SeriesCollection(4).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .BackColor.ObjectThemeColor = msoThemeColorBackground1
-            .BackColor.TintAndShade = 0
-            .BackColor.Brightness = 0
-            .Patterned msoPatternDarkUpwardDiagonal
+            .ForeColor.RGB = RGB(146, 210, 198)
         End With
         
-        ' 3 stars = Grey w/White Dots
+        ' 3 stars = Gray
         With .SeriesCollection(3).Format.Fill
-            .Visible = msoTrue
-            .Patterned msoPattern20Percent
-            .ForeColor.RGB = RGB(255, 255, 255)
-            .BackColor.ObjectThemeColor = msoThemeColorBackground1
-            .BackColor.TintAndShade = 0
-            .BackColor.Brightness = -0.15
+            .ForeColor.RGB = RGB(199, 199, 199)
         End With
         
-        
-        ' 2 stars = Sky Blue
+        ' 2 stars = Pink
         With .SeriesCollection(2).Format.Fill
-            .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-            .ForeColor.Brightness = 0.400000006
+            .ForeColor.RGB = RGB(255, 80, 80)
+            .Transparency = 0.75
         End With
         
-        ' 1 star = Navy
+        ' 1 stars = Salmon
         With .SeriesCollection(1).Format.Fill
-            .Visible = msoTrue
-            .ForeColor.ObjectThemeColor = msoThemeColorText2
-            .ForeColor.TintAndShade = 0
-            .ForeColor.Brightness = -0.25
-            .Transparency = 0
-            .Solid
+            .ForeColor.RGB = RGB(255, 80, 80)
+            .Transparency = 0.4
         End With
         
         ' Resize PlotArea
@@ -1738,6 +1735,7 @@ Sub MSRegionChart(Optional kind As String = "countries")
     Cells(1, 1).Select
     
 End Sub
+
     
 Sub MTopBottomTable()
 
@@ -1751,7 +1749,7 @@ Sub MTopBottomTable()
     Set Area(1, 1) = Cells(1, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).Offset(0, 1).End(xlDown).Offset(0, -1)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     Set DataArea = Range(Area(1, 1).Offset(1, 1), Area(1, 1).Offset(4, 4))
     
     
@@ -1812,7 +1810,7 @@ Sub EuroTRQuartileChart()
     Set Area(1, 1) = Cells(2, 1)
     Set Area(1, 2) = Area(1, 1).End(xlToRight)
     Set Area(2, 1) = Area(1, 1).End(xlDown)
-    Set Area(2, 2) = Cells(Area(2, 1).Row, Area(1, 2).Column)
+    Set Area(2, 2) = Cells(Area(2, 1).row, Area(1, 2).Column)
     Set DataArea = Range(Area(1, 1), Area(2, 2))
     
     ' Set Chart location params
@@ -1896,43 +1894,23 @@ Sub EuroTRQuartileChart()
             ' Color
             ' 1st Quartile = Navy
             With .SeriesCollection(4).Format.Fill
-                .Visible = msoTrue
-                .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-                .ForeColor.TintAndShade = 0
-                .ForeColor.Brightness = -0.5
-                .Transparency = 0
-                .Solid
+                .ForeColor.RGB = RGB(12, 74, 116)
             End With
             
-            ' 2nd Quartile = Gray stripes
+            ' 2nd Quartile = Teal
             With .SeriesCollection(3).Format.Fill
-                .Visible = msoTrue
-                .Patterned msoPatternDarkUpwardDiagonal
-                .BackColor.RGB = RGB(255, 255, 255)
-                .ForeColor.ObjectThemeColor = msoThemeColorBackground1
-                .ForeColor.TintAndShade = 0
-                .ForeColor.Brightness = -0.25
+                .ForeColor.RGB = RGB(146, 210, 198)
             End With
             
             ' 3rd Quartile = Pink
             With .SeriesCollection(2).Format.Fill
-                .Visible = msoTrue
-                .ForeColor.ObjectThemeColor = msoThemeColorAccent2
-                .ForeColor.TintAndShade = 0
-                .ForeColor.Brightness = 0.8000000119
-                .Transparency = 0
-                .Solid
+                .ForeColor.RGB = RGB(255, 80, 80)
+                .Transparency = 0.6
             End With
             
             ' 4th Quartile = Light Blue
             With .SeriesCollection(1).Format.Fill
-                .Visible = msoTrue
-                .Patterned msoPattern30Percent
-                .ForeColor.ObjectThemeColor = msoThemeColorAccent1
-                .ForeColor.TintAndShade = 0
-                .ForeColor.Brightness = 0.400000006
-                .BackColor.RGB = RGB(255, 255, 255)
-                .Transparency = 0
+                .ForeColor.RGB = RGB(199, 199, 199)
             End With
             
             ' Resize PlotArea
@@ -1973,7 +1951,7 @@ Sub InvTypeGrossChart()
             .AdvancedFilter Action:=xlFilterInPlace, Unique:=True
             If i = 1 Then NumCtry = .SpecialCells(xlCellTypeVisible).Cells.Count - 1
             If i = 2 Then NumType = .SpecialCells(xlCellTypeVisible).Cells.Count - 1
-            MySheet.ShowAllData
+            .AdvancedFilter xlFilterInPlace
         End With
     Next i
     
@@ -1995,7 +1973,7 @@ Sub InvTypeGrossChart()
         Set Start = DataEnd.Offset(2 + (i - 1) * (ChartHeight + 1), 0)
         Set ChartLoc(i) = Range(Start, Start.Offset(ChartHeight - 1, ChartWidth - 1))
     Next i
-
+    
     ' Create charts
     For i = 1 To NumCtry
     
@@ -2052,21 +2030,22 @@ Sub InvTypeGrossChart()
             For j = 1 To NumType
             
             ' Colors (Bond, Equity, Other, Mixed)
-                If j = 1 Then
-                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(79, 129, 189)
-                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(79, 129, 189)
-                ElseIf j = 2 Then
-                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(146, 210, 198)
-                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
-                ElseIf j = 3 Then
-                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(190, 115, 102)
-                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(190, 115, 102)
-                ElseIf j = 4 Then
-                    .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(199, 199, 199)
-                    .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(199, 199, 199)
-                End If
-                    
-                .SeriesCollection(j).Smooth = True
+                With .SeriesCollection(j)
+                    If .Name = "Bond" Then
+                        .Format.Line.ForeColor.RGB = RGB(79, 129, 189)
+                        .Format.Fill.ForeColor.RGB = RGB(79, 129, 189)
+                    ElseIf .Name = "Equity" Then
+                        .Format.Line.ForeColor.RGB = RGB(146, 210, 198)
+                        .Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
+                    ElseIf .Name = "Other" Then
+                        .Format.Line.ForeColor.RGB = RGB(190, 115, 102)
+                        .Format.Fill.ForeColor.RGB = RGB(190, 115, 102)
+                    ElseIf .Name = "Mixed" Then
+                        .Format.Line.ForeColor.RGB = RGB(199, 199, 199)
+                        .Format.Fill.ForeColor.RGB = RGB(199, 199, 199)
+                    End If
+                    .Smooth = True
+                End With
                 
             Next j
             
@@ -2079,11 +2058,121 @@ Sub InvTypeGrossChart()
 End Sub
 
 
+Sub ActiveETFChart()
 
+    Dim MySheet                 As Worksheet
+    Dim MyChart                 As Chart
+    Dim ChartHeight, ChartWidth As Long
+    Dim ChartLoc, ChartData     As Range
+    Dim i, j                    As Integer
+    Dim Axis                    As Variant
+    Dim Start, DataEnd          As Range
+    Dim Headers                 As Range
+    
+    Set MySheet = ActiveSheet
+    Set ChartData = Range(Cells(1, 1), Cells(1, 1).End(xlToRight).End(xlDown))
+    
+    ' Set chart sizing
+    ChartWidth = 8
+    ChartHeight = 20
+    Set Start = Cells(1, 1).Offset(ChartData.Rows.Count + 1, 0)
+    Set ChartLoc = Range(Start, Start.Offset(ChartHeight, ChartWidth))
+    
+    ' Create chart
+    Set MyChart = MySheet.Shapes.AddChart(xlColumnClustered).Chart
+    
+    With MyChart
+    
+        .SetSourceData ChartData
+        
+        ' Set chart location
+        With .Parent
+            .top = ChartLoc.top
+            .left = ChartLoc.left
+            .Height = ChartLoc.Height
+            .Width = ChartLoc.Width
+        End With
+        
+        ' Axes
+        With .Axes(xlValue, xlPrimary)
+            .MajorGridlines.Delete
+            .TickLabels.NumberFormat = "0"
+            .DisplayUnit = xlThousands
+            .HasDisplayUnitLabel = False
+        End With
+    
+        .Axes(xlCategory).TickLabelPosition = xlTickLabelPositionLow
+        
+        ' Legend & Title
+        .HasTitle = True
+        .ChartTitle.text = Join(Array(Year(DateAdd("m", -1, Now)), _
+            "Flows (€B) Active MF vs. ETF"), " ")
+        With .Legend
+            .top = MyChart.ChartTitle.top + 30
+            .left = MyChart.ChartTitle.left + 100
+        End With
+        
+        ' Colors
+        For j = 1 To .SeriesCollection.Count
+        
+        ' Colors (Bond, Equity, Other, Mixed)
+            If j = 1 Then
+                .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(79, 129, 189)
+                .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(79, 129, 189)
+            ElseIf j = 2 Then
+                .SeriesCollection(j).Format.Line.ForeColor.RGB = RGB(146, 210, 198)
+                .SeriesCollection(j).Format.Fill.ForeColor.RGB = RGB(146, 210, 198)
+            End If
+                
+        Next j
+        
+        ' Resize plot area
+        .PlotArea.left = .ChartArea.left + 20
+        .PlotArea.Height = .ChartArea.Height - 0.1 * .ChartArea.Height
+        .PlotArea.Width = .ChartArea.Width - 0.1 * .ChartArea.Width
+    
+    End With
 
+End Sub
 
+Sub MarketNetTblChart()
 
+    Dim tblRng          As Range
+    
+    Set tblRng = Cells(1, 1).CurrentRegion
+    tblRng.ClearFormats
+    
+    With tblRng
+    ' Various formatting aspects
+        With .Offset(1, 1).Resize(tblRng.Rows.Count - 1, tblRng.Columns.Count - 1)
+            .NumberFormat = "#,##0"
+            .HorizontalAlignment = xlCenter
+            .Font.Size = 10
+        End With
+        
+        .ColumnWidth = 9.75
+        .Columns(1).ColumnWidth = 11
+        .VerticalAlignment = xlCenter
+        .RowHeight = 22.5
+        .BorderAround 1, 3
+        
+        With .Rows(1)
+            .RowHeight = 64.5
+            .BorderAround 1, 3
+            .HorizontalAlignment = xlCenter
+            .Font.Bold = True
+            .WrapText = True
+        End With
+        
+        With .Borders(xlInsideVertical)
+            .LineStyle = xlDash
+            .Weight = xlThin
+        End With
+        
+        .Interior.Color = RGB(187, 227, 219)
+    End With
 
+End Sub
 
 
 

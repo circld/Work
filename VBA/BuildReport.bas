@@ -7,13 +7,13 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
 
     ' If throwing errors, ensure that 'Tools/References/Microsoft VBScript
     ' Regular Expressions' is checked
-    Dim RegEx       As New VBScript_RegExp_55.RegExp
+    Dim Regex       As New VBScript_RegExp_55.RegExp
     Dim Matches
     Dim OneTrue     As Boolean
     
     For Each Valid In ValidNames
-        RegEx.Pattern = ".{2,3}" & Valid & "$"
-        OneTrue = RegEx.test(ThisName)
+        Regex.Pattern = ".{2,3}" & Valid & "$"
+        OneTrue = Regex.test(ThisName)
         MatchSheetName = Valid
         If OneTrue = True Then Exit For
     Next Valid
@@ -51,31 +51,22 @@ Sub CreateReport()
     
     ' Edit if changing reports (will require editing separate data
     ' transformation & charting procs in Modules 1 & 3)
-    ValidSheets = Array("Global Net vs Gross Sales", _
-                        "Global Gross Sales %", _
-                        "Net Sales vs Avg. Performance", _
-                        "Redemption Rate Calculation", _
-                        "Morningstar Ratings", _
-                        "Performance Global TopBottom", _
-                        "Market Global TopBottom 5 Se", _
-                        "Market Share by Manager ", _
-                        "Global Bubbles", _
-                        "Local vs Cross-border net sa", _
-                        "Manager Net Sales by Country", _
-                        "Global Gross Sales % by Regi", _
-                        "3 Equity Categories NetSales", _
-                        "Global Bubbles Latest Qr", _
-                        "Global Bubbles Prior Qr 3", _
-                        "Global Bubbles Latest 12 Mth", _
-                        "Manager Bubbles Latest 12 Mt", _
-                        "Int'l&UK Bubbles Latest 12 M", _
-                        "Manager Int'l&UK Latest 12 M", _
-                        "Market Global Table TopBott", _
-                        "Euro Net Flows By TR Quartil", _
-                        "3Yr Euro TR Quartile", _
-                        "Global Bubbles Int'l Net Flo", _
-                        "Morningstar Europe", _
-                        "Investment Type Gross Sales ")
+    ValidSheets = Array("Global Net vs Gross Sales", "Global Gross Sales %", _
+                        "Net Sales vs Avg. Performance", "Redemption Rate Calculation", _
+                        "Morningstar Ratings", "Performance Global TopBottom", _
+                        "Market Global TopBottom 5 Se", "Market Share by Manager ", _
+                        "Global Bubbles", "Local vs Cross-border net sa", _
+                        "Manager Net Sales by Country", "Global Gross Sales % by Regi", _
+                        "3 Equity Categories NetSales", "Global Bubbles Latest Qr", _
+                        "Global Bubbles Prior Qr 3", "Global Bubbles Latest 12 Mth", _
+                        "Manager Bubbles Latest 12 Mt", "Int'l&UK Bubbles Latest 12 M", _
+                        "Manager Int'l&UK Latest 12 M", "Market Global Table TopBott", _
+                        "Euro Net Flows By TR Quartil", "3Yr Euro TR Quartile", _
+                        "Global Bubbles Int'l Net Flo", "Morningstar Europe", _
+                        "Investment Type Gross Sales ", "Total Investment Type Gross ", _
+                        "ETF vs Active YTD by categor", "Origination Markets Table", _
+                        "Bubble Chart - Equity", "Bubble Chart - Bond" _
+                        )
                         
     ' Output file path & name (with dates)
     DateTime = Now
@@ -188,6 +179,20 @@ Sub CreateReport()
     Call FormatData.InvTypeGrossData
     Call CreateGraphs.InvTypeGrossChart
     
+    ' Investment Type Total
+    DataBook.Worksheets("Total Investment Type Gross ").Activate
+    Call FormatData.InvTypeGrossData
+    Call CreateGraphs.InvTypeGrossChart
+    
+    ' ETF v Active Bar
+    DataBook.Worksheets("ETF vs Active YTD by categor").Activate
+    Call FormatData.ActiveETFData
+    Call CreateGraphs.ActiveETFChart
+    
+    ' Origination Markets Table
+    DataBook.Worksheets("Origination Markets Table").Activate
+    Call FormatData.MarketNetTblData
+    Call CreateGraphs.MarketNetTblChart
     
     ' Bubble charts -------------------------------------------------------------------------------
     
@@ -237,6 +242,20 @@ Sub CreateReport()
     Call FormatData.BubbleData(10)
     Call CreateGraphs.BubbleChart("Asset-Weighted 3 Year International Total Return and Volatility vs YTD Net Sales", _
         BubbleLab(1), BubbleLab(2))
+        
+    ' Equity
+    DataBook.Worksheets("Bubble Chart - Equity").Activate
+    Call FormatData.BubbleData
+    Call CreateGraphs.BubbleChart("Cross Border Performance", _
+        "3 Yr TR % Standard Deviation", _
+        "3 Yr TR %")
+    
+    ' Bond
+    DataBook.Worksheets("Bubble Chart - Bond").Activate
+    Call FormatData.BubbleData
+    Call CreateGraphs.BubbleChart("Cross Border Performance", _
+        "3 Yr TR % Standard Deviation", _
+        "3 Yr TR %")
     
 
     ' Save file if it does not already exist
