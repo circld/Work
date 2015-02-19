@@ -1,87 +1,136 @@
 Attribute VB_Name = "CreatePowerPoint"
+' TODO:
+' X Logic to load design programatically
+
+' Slide types
+' >>1. Title slide
+' 2. Section slides
+'   Sector Focus:
+'   Market Analysis
+' 3. Single charts (resize in excel to 750.24 x 372.96)
+'   Global Trends - AUM, Gross and Net
+'   Global Trends - Gross)
+'   Global Trends - Net Sales by Investment Type
+'   Global Trends - Redemption Rates
+'   Global Trends - Best Sectors Performance, Risk and Sales
+'   Global Trends - Products and Players Performance, Risk and Sales (bottom)
+'   Market Split - Local & Cross-border Net Sales
+' 4. Double charts - Performance and Sales
+' 5. Country-specific Top Bottom
+
+
 Sub CreatePowerPoint()
 
- 'Add a reference to the Microsoft PowerPoint Library by:
-    '1. Go to Tools in the VBA menu
-    '2. Click on Reference
-    '3. Scroll down to Microsoft PowerPoint X.0 Object Library, check the box, and press Okay
+ ' Add a reference to the Microsoft PowerPoint Library by:
+    ' 1. Go to Tools in the VBA menu
+    ' 2. Click on Reference
+    ' 3. Scroll down to Microsoft PowerPoint X.0 Object Library, check the box, and press Okay
  
-    'First we declare the variables we will be using
-        Dim newPowerPoint As PowerPoint.Application
-        Dim activeSlide As PowerPoint.Slide
-        Dim cht As Excel.ChartObject
-        Dim pic As Picture
-        Dim tmpRng As Range
-        Dim counter As Integer
+    ' First we declare the variables we will be using
+    Dim oWorkbook           As Workbook
+    Dim newPowerPoint       As PowerPoint.Application
+    Dim themeLoc            As String
+    Dim activeSlide         As PowerPoint.Slide
+    Dim cht                 As Excel.ChartObject
+    Dim pic                 As Picture
+    Dim tmpRng              As Range
+    Dim counter             As Integer
+    Dim title               As String
      
-     'Look for existing instance
-        On Error Resume Next
-        Set newPowerPoint = GetObject(, "PowerPoint.Application")
-        On Error GoTo 0
      
-    'Let's create a new PowerPoint
-        If newPowerPoint Is Nothing Then
-            Set newPowerPoint = New PowerPoint.Application
-        End If
-    'Make a presentation in PowerPoint
-        If newPowerPoint.Presentations.Count = 0 Then
-            newPowerPoint.Presentations.Add
-        End If
-     
-    'Show the PowerPoint
-        newPowerPoint.Visible = True
+    Set oWorkbook = ActiveWorkbook
     
-    'Loop through each chart in the Excel worksheet and paste them into the PowerPoint
-        For Each sht In ActiveWorkbook.Worksheets
-            
-            sht.Activate
-            
-            ' 2 charts per slide for Global TopBottom
-            If sht.Name = "Market Global TopBottom 5 Se" Then
-                i = 1
-                For Each cht In ActiveSheet.ChartObjects
-                    
-                    If i Mod 2 = 1 Then
-                        newPowerPoint.ActivePresentation.Slides.Add newPowerPoint.ActivePresentation.Slides.Count + 1, ppLayoutText
-                        newPowerPoint.ActiveWindow.View.GotoSlide newPowerPoint.ActivePresentation.Slides.Count
-                        CopyChartToPP newPowerPoint, cht
-                    Else
-                        newPowerPoint.ActiveWindow.View.GotoSlide newPowerPoint.ActivePresentation.Slides.Count
-                        CopyChartToPP newPowerPoint, cht, 15 + cht.Width
-                    End If
-                    i = i + 1
-                Next cht
-                Set i = Nothing
-            ' Copy picture object (table)
-            ElseIf sht.Name = "Performance Global TopBottom" Then
-                    Set tmpRng = Range(Cells(1, 1), Cells(17, 3))
-                    tmpRng.Copy
-                    tmpRng.Offset(0, 4).Select
-                    ActiveSheet.Pictures.Paste.Select
-                    Set pic = Selection
-                    
-                    newPowerPoint.ActivePresentation.Slides.Add newPowerPoint.ActivePresentation.Slides.Count + 1, ppLayoutText
-                    newPowerPoint.ActiveWindow.View.GotoSlide newPowerPoint.ActivePresentation.Slides.Count
-                    CopyPicToPP newPowerPoint, pic
-                    
-                    pic.Delete
-            Else
-                For Each cht In ActiveSheet.ChartObjects
-                    
-                    newPowerPoint.ActivePresentation.Slides.Add newPowerPoint.ActivePresentation.Slides.Count + 1, ppLayoutText
-                    newPowerPoint.ActiveWindow.View.GotoSlide newPowerPoint.ActivePresentation.Slides.Count
-
-                    CopyChartToPP newPowerPoint, cht
-                    
-                Next cht
-            End If
-        Next sht
+     ' Look for existing instance
+    On Error Resume Next
+    Set newPowerPoint = GetObject(, "PowerPoint.Application")
+    On Error GoTo 0
+     
+    ' Create new PowerPoint
+    If newPowerPoint Is Nothing Then
+        Set newPowerPoint = New PowerPoint.Application
+    End If
+    
+    ' Make a presentation in PowerPoint
+    If newPowerPoint.Presentations.Count = 0 Then
+        newPowerPoint.Presentations.Add
+    End If
+    
+    ' Load design & set slide size
+    themeLoc = "C:\Users\pgaraud\AppData\Roaming\Microsoft\Templates\Document Themes\SI.thmx"
+    newPowerPoint.ActivePresentation.ApplyTheme themeLoc
+    newPowerPoint.ActivePresentation.PageSetup.SlideSize = ppSlideSizeA4Paper
+    
+    ' Create slides
+    
+    ' Title slide
+    
+    title = "Global Trends - AUM, Gross and Net Sales"
+    oWorkbook.Worksheets("Global Net vs Gross Sales").Activate
+    ActiveSheet.ChartObjects(1).CopyPicture
+    ActiveSheet.Pictures.Paste.Select
+    Set pic = Selection
+    NewSingleSlide newPowerPoint, pic, title
+    pic.Delete
+    
+    title = "Global Trends - Gross Sales"
+    
+    
+    title = "Global Trends - Net Sales by Investment Type"
+    
+    
+    title = "Global Trends - Redemption Rates over Assets by Investment Type"
+    
+    
+    title = "Global Trends - Best Sectors Performance, Risk and Sales"
+    
+    
+    title = "Global Trends - Products and Player Performance, Risk and Sales (Bottom Categories)"
+    
+    
+    
      
     AppActivate title:="Presentation1 - PowerPoint"
     Set activeSlide = Nothing
     Set newPowerPoint = Nothing
      
 End Sub
+
+' Create slide following formatting for a single chart
+Function NewSingleSlide(ByRef PP As PowerPoint.Application, ByRef cht As Picture, ByRef title As String)
+
+    Dim activeSlide     As PowerPoint.Slide
+    Dim sHeight         As Long
+    Dim sWidth          As Long
+    
+    ' Add and select new slide
+    With PP.ActivePresentation
+        .Slides.Add .Slides.Count + 1, ppLayoutBlank
+        .Slides(.Slides.Count).CustomLayout = .Designs(1).SlideMaster.CustomLayouts(5)
+        PP.ActiveWindow.View.GotoSlide .Slides.Count
+        Set activeSlide = .Slides(.Slides.Count)
+    End With
+    
+    ' Add chart/table
+    cht.CopyPicture xlPrinter, xlPicture
+    activeSlide.Shapes.PasteSpecial ppPasteMetafilePicture
+    
+    'Adjust the positioning of the Chart on Powerpoint Slide
+    With PP.ActivePresentation.PageSetup
+        sHeight = .slideHeight
+        sWidth = .slideWidth
+    End With
+    
+    With activeSlide.Shapes(2)
+        .top = 0.15 * sHeight
+        .left = 0.05 * sWidth
+        .Width = 0.9 * sWidth
+        .Height = 0.75 * sHeight
+    End With
+        
+    ' Title
+    activeSlide.Shapes(1).TextFrame.TextRange.text = title
+
+End Function
 
 Function CopyChartToPP(ByRef newPowerPoint As PowerPoint.Application, ByRef cht As ChartObject, Optional left As Long, _
                         Optional top As Long, Optional title As String)
@@ -106,7 +155,7 @@ Function CopyChartToPP(ByRef newPowerPoint As PowerPoint.Application, ByRef cht 
                 
             ' Title
                 If title = "" And cht.Chart.HasTitle = True Then title = cht.Chart.ChartTitle.text
-                activeSlide.Shapes(1).TextFrame.TextRange.text = title & vbNewLine
+                activeSlide.Shapes(1).TextFrame.TextRange.text = title '& vbNewLine
                 ' If want to insert commentary:
                 ' activeSlide.Shapes(2).TextFrame.TextRange.InsertAfter (Range("J8").Value & vbNewLine)
                 
