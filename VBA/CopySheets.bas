@@ -5,7 +5,6 @@ Sub CopySheets()
     Dim oSheet              As Worksheet
     Dim template            As String
     Dim StrFile             As String
-    Dim i                   As Long
     
     
     directory = ThisWorkbook.Path & "\"
@@ -18,6 +17,7 @@ Sub CopySheets()
     template = Cells(3, 2).Value
     Workbooks.Open directory & template
     
+    ' Loop through all files matching pattern in dir()
     Do While Len(StrFile) > 0
     
         If StrFile <> template Then
