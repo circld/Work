@@ -16,7 +16,7 @@ Sub CopySheets()
     
     ' Open template file
     template = Cells(3, 2).Value
-    Workbooks.Open template
+    Workbooks.Open directory & template
     
     Do While Len(StrFile) > 0
     
