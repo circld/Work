@@ -1,19 +1,19 @@
 Attribute VB_Name = "CreatePowerPoint"
 ' TODO:
-' X Logic to load design programatically
+' Finish AddSectionSlide
+' Consider modularizing adding slide (common to all Add* functions)
 
 ' Slide types
-' >>1. Title slide
+' X 1. Title slide
 ' 2. Section slides
-'   Sector Focus:
-'   Market Analysis
+'   * Market Analysis
 ' 3. Single charts (resize in excel to 750.24 x 372.96)
-'   Global Trends - AUM, Gross and Net
-'   Global Trends - Gross)
-'   Global Trends - Net Sales by Investment Type
-'   Global Trends - Redemption Rates
-'   Global Trends - Best Sectors Performance, Risk and Sales
-'   Global Trends - Products and Players Performance, Risk and Sales (bottom)
+'   X Global Trends - AUM, Gross and Net
+'   X Global Trends - Gross)
+'   >>Global Trends - Net Sales by Investment Type
+'   X Global Trends - Redemption Rates
+'   >> Global Trends - Best Sectors Performance, Risk and Sales
+'   >> Global Trends - Products and Players Performance, Risk and Sales (bottom)
 '   Market Split - Local & Cross-border Net Sales
 ' 4. Double charts - Performance and Sales
 ' 5. Country-specific Top Bottom
@@ -32,10 +32,11 @@ Sub CreatePowerPoint()
     Dim themeLoc            As String
     Dim activeSlide         As PowerPoint.Slide
     Dim cht                 As Excel.ChartObject
-    Dim pic                 As Picture
+    Dim tbl                 As Range
     Dim tmpRng              As Range
     Dim counter             As Integer
     Dim title               As String
+    Dim test                As Range
      
      
     Set oWorkbook = ActiveWorkbook
@@ -63,32 +64,50 @@ Sub CreatePowerPoint()
     ' Create slides
     
     ' Title slide
+    AddTitleSlide newPowerPoint
     
+    ' Slide 2
     title = "Global Trends - AUM, Gross and Net Sales"
     oWorkbook.Worksheets("Global Net vs Gross Sales").Activate
-    ActiveSheet.ChartObjects(1).CopyPicture
-    ActiveSheet.Pictures.Paste.Select
-    Set pic = Selection
-    NewSingleSlide newPowerPoint, pic, title
-    pic.Delete
+    Set cht = ActiveSheet.ChartObjects(1)
+    AddSingleSlide newPowerPoint, title, cht
     
+    ' Slide 3
     title = "Global Trends - Gross Sales"
+    oWorkbook.Worksheets("Global Gross Sales %").Activate
+    Set cht = ActiveSheet.ChartObjects(1)
+    AddSingleSlide newPowerPoint, title, cht
     
+    ' Slide 4
+    title = "Global Trends - Gross Sales by Investment Type"
+    ' NOTE: don't currently have this report/chart
+    ' oWorkbook.Worksheets().Activate
+    ' Set cht = ActiveSheet.ChartObjects(1)
     
-    title = "Global Trends - Net Sales by Investment Type"
-    
-    
+    ' Slide 5
     title = "Global Trends - Redemption Rates over Assets by Investment Type"
+    oWorkbook.Worksheets("Redemption Rate Calculation").Activate
+    Set cht = ActiveSheet.ChartObjects(1)
+    AddSingleSlide newPowerPoint, title, cht
     
-    
+    ' Slide 6
     title = "Global Trends - Best Sectors Performance, Risk and Sales"
+    ' NOTE: unclear which bubble chart this is; emailed 2/20
+    ' oWorkbook.Worksheets().Activate
+    ' Set cht = ActiveSheet.ChartObjects(1)
     
-    
+    ' Slide 7
     title = "Global Trends - Products and Player Performance, Risk and Sales (Bottom Categories)"
+    ' NOTE: don't currently generate this chart
+    
+    ' Slide 8
+    title = "Performance and Sales"
+    ' TODO: AddDoubleSlide
+    
+    ' Slide 9 - Market Analysis
+    AddSectionSlide newPowerPoint, "Market Analysis"
     
     
-    
-     
     AppActivate title:="Presentation1 - PowerPoint"
     Set activeSlide = Nothing
     Set newPowerPoint = Nothing
@@ -96,11 +115,17 @@ Sub CreatePowerPoint()
 End Sub
 
 ' Create slide following formatting for a single chart
-Function NewSingleSlide(ByRef PP As PowerPoint.Application, ByRef cht As Picture, ByRef title As String)
+Function AddSingleSlide( _
+    ByRef PP As PowerPoint.Application, _
+    ByRef title As String, _
+    Optional cht As ChartObject, _
+    Optional tbl As Range _
+    )
 
     Dim activeSlide     As PowerPoint.Slide
     Dim sHeight         As Long
     Dim sWidth          As Long
+    
     
     ' Add and select new slide
     With PP.ActivePresentation
@@ -111,8 +136,14 @@ Function NewSingleSlide(ByRef PP As PowerPoint.Application, ByRef cht As Picture
     End With
     
     ' Add chart/table
-    cht.CopyPicture xlPrinter, xlPicture
-    activeSlide.Shapes.PasteSpecial ppPasteMetafilePicture
+    If Not cht Is Nothing Then
+        cht.Copy
+    ElseIf Not tbl Is Nothing Then
+        tbl.Copy
+    Else
+        Exit Function
+    End If
+    activeSlide.Shapes.Paste
     
     'Adjust the positioning of the Chart on Powerpoint Slide
     With PP.ActivePresentation.PageSetup
@@ -132,65 +163,100 @@ Function NewSingleSlide(ByRef PP As PowerPoint.Application, ByRef cht As Picture
 
 End Function
 
-Function CopyChartToPP(ByRef newPowerPoint As PowerPoint.Application, ByRef cht As ChartObject, Optional left As Long, _
-                        Optional top As Long, Optional title As String)
-
-            'Add a new slide where we will paste the chart
-                Set activeSlide = newPowerPoint.ActivePresentation.Slides(newPowerPoint.ActivePresentation.Slides.Count)
-                    
-            'Copy the chart and paste it into the PowerPoint as a Metafile Picture
-                cht.Select
-                cht.CopyPicture xlPrinter, xlPicture
-                activeSlide.Shapes.PasteSpecial DataType:=ppPasteMetafilePicture
-                activeSlide.Shapes(activeSlide.Shapes.Count).Select
-                
-            'Adjust the positioning of the Chart on Powerpoint Slide
-                If left = 0 Then left = 15
-                If top = 0 Then top = 125
-                newPowerPoint.ActiveWindow.Selection.ShapeRange.left = left
-                newPowerPoint.ActiveWindow.Selection.ShapeRange.top = top
-                
-                activeSlide.Shapes(2).Width = 200
-                activeSlide.Shapes(2).left = 505
-                
-            ' Title
-                If title = "" And cht.Chart.HasTitle = True Then title = cht.Chart.ChartTitle.text
-                activeSlide.Shapes(1).TextFrame.TextRange.text = title '& vbNewLine
-                ' If want to insert commentary:
-                ' activeSlide.Shapes(2).TextFrame.TextRange.InsertAfter (Range("J8").Value & vbNewLine)
-                
-            'Now let's change the font size of the callouts box
-                activeSlide.Shapes(2).TextFrame.TextRange.Font.Size = 16
-
+Function AddTitleSlide(ByRef PP As PowerPoint.Application)
+    
+    Dim dataDate            As Date
+    Dim mth, yr, myr, txt   As String
+    Dim txtRng              As TextRange
+    Dim sHeight, sWidth     As Long
+    
+    
+    ' Set appropriate month + year
+    dataDate = DateAdd("m", -2, Now)
+    mth = Format(dataDate, "mmm")
+    yr = year(dataDate)
+    myr = mth & " " & yr
+    
+    ' Add blank title slide
+    With PP.ActivePresentation
+        .Slides.Add .Slides.Count + 1, ppLayoutBlank
+        .Slides(.Slides.Count).CustomLayout = .Designs(1).SlideMaster.CustomLayouts(1)
+        PP.ActiveWindow.View.GotoSlide .Slides.Count
+        Set activeSlide = .Slides(.Slides.Count)
+    End With
+    
+    ' Set slide height/width
+    With PP.ActivePresentation.PageSetup
+        sHeight = .slideHeight
+        sWidth = .slideWidth
+    End With
+    
+    ' Title
+    With activeSlide.Shapes(1).TextFrame.TextRange
+        .text = Join(Array("Cross-Border Monthly Review", Chr(10), myr), "")
+        .Font.Color.RGB = RGB(18, 74, 116)  ' Navy
+        .Font.Size = 32
+        Set txtRng = .Characters(InStr(.text, myr), Len(myr))
+        txtRng.Font.Size = 20
+    End With
+    
+    ' Blurb
+    With activeSlide.Shapes(2)
+    
+        With .TextFrame.TextRange
+            .text = Join(Array( _
+                "Elisabetta Forelli, Senior Product and Data Manager", _
+                " (eforelli@sionline.com)", Chr(10), Chr(10), _
+                "Source for all charts: ", "Strategic Insight Simfund Global PRO" _
+            ), "")
+            .Font.Color.RGB = RGB(18, 74, 116)  ' Navy
+            .Font.Size = 18
+            .Font.Bold = msoTrue
+            
+            ' italicize email
+            txt = "eforelli@sionline.com"
+            Set txtRng = .Characters(InStr(.text, txt), Len(txt))
+            txtRng.Font.Italic = msoTrue
+            
+            ' format disclaimer
+            txt = "Source for all charts: Strategic Insight Simfund Global PRO"
+            Set txtRng = .Characters(InStr(.text, txt), Len(txt))
+            txtRng.Font.Bold = msoFalse
+            txtRng.Font.Color.RGB = RGB(0, 0, 0)  ' Black
+        End With
+        
+        .top = 0.5 * sHeight
+        .left = activeSlide.Shapes(1).left
+        .Height = 0.2 * sHeight
+        .Width = 0.5 * sWidth
+        
+    End With
+    
+    ' Image
+    With activeSlide.Shapes(3)
+        .top = 0.3 * sHeight
+        .left = 0.5 * sWidth
+        .Height = 0.55 * sHeight
+        .Width = 0.4 * sWidth
+    End With
+    
 End Function
 
-Function CopyPicToPP(ByRef newPowerPoint As PowerPoint.Application, ByRef pic As Picture, Optional left As Long, _
-                        Optional top As Long, Optional title As String)
+Sub AddSectionSlide(ByRef PP As PowerPoint.Application, ByRef title As String)
 
-            'Add a new slide where we will paste the chart
-                Set activeSlide = newPowerPoint.ActivePresentation.Slides(newPowerPoint.ActivePresentation.Slides.Count)
-                    
-            'Copy the chart and paste it into the PowerPoint as a Metafile Picture
-                pic.Select
-                pic.CopyPicture xlPrinter, xlPicture
-                activeSlide.Shapes.PasteSpecial DataType:=ppPasteMetafilePicture
-                activeSlide.Shapes(activeSlide.Shapes.Count).Select
-                
-            'Adjust the positioning of the Chart on Powerpoint Slide
-                If left = 0 Then left = 15
-                If top = 0 Then top = 125
-                newPowerPoint.ActiveWindow.Selection.ShapeRange.left = left
-                newPowerPoint.ActiveWindow.Selection.ShapeRange.top = top
-                
-                activeSlide.Shapes(2).Width = 200
-                activeSlide.Shapes(2).left = 505
-                
-            ' Title
-                activeSlide.Shapes(1).TextFrame.TextRange.text = title & vbNewLine
-                ' If want to insert commentary:
-                ' activeSlide.Shapes(2).TextFrame.TextRange.InsertAfter (Range("J8").Value & vbNewLine)
-                
-            'Now let's change the font size of the callouts box
-                activeSlide.Shapes(2).TextFrame.TextRange.Font.Size = 16
+    Dim activeSlide     As PowerPoint.Slide
+    Dim sHeight         As Long
+    Dim sWidth          As Long
+    
+    ' Add and select new slide
+    With PP.ActivePresentation
+        .Slides.Add .Slides.Count + 1, ppLayoutBlank
+        .Slides(.Slides.Count).CustomLayout = .Designs(1).SlideMaster.CustomLayouts(5)
+        PP.ActiveWindow.View.GotoSlide .Slides.Count
+        Set activeSlide = .Slides(.Slides.Count)
+    End With
+    
+    ' Title
+    
 
-End Function
+End Sub

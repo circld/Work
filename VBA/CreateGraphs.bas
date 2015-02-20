@@ -151,7 +151,6 @@ Sub GlobalNetGrossChart()
     
 End Sub
 
-
 Sub GlobalGrossCatChart()
 
     Dim MyChart                 As Chart
@@ -159,6 +158,7 @@ Sub GlobalGrossCatChart()
     Dim startCell, ChartLoc     As Range
     Dim ChartHeight, ChartWidth As Long
     Dim i                       As Integer
+    Dim Axis                    As Variant
     
     Set MyRange = Range("A1:N5")
     
@@ -175,15 +175,6 @@ Sub GlobalGrossCatChart()
         ' Prepare data & presentation
         .SetSourceData Source:=MyRange
         .ChartGroups(1).GapWidth = 80
-        
-        ' Adjust axes (nb: values already in millions)
-        With .Axes(xlValue, xlPrimary)
-            .MajorGridlines.Delete
-            .TickLabels.Font.Size = 12
-        End With
-        
-        MyChart.Axes(xlCategory).TickLabels.Font.Size = 12
-        MyChart.Axes(xlCategory).TickLabels.Orientation = 15
         
         ' Set Location
         With .Parent
@@ -227,24 +218,45 @@ Sub GlobalGrossCatChart()
         Next i
         
         ' Axes
-        With .Axes(xlValue)
-            .HasTitle = True
-            .AxisTitle.text = "€ BILLIONS"
-            .AxisTitle.Font.Size = 9
-            .AxisTitle.Font.Bold = msoFalse
-            .AxisTitle.Orientation = 90
-            .AxisTitle.top = 5
-            .AxisTitle.left = 3
-            .AxisTitle.Font.Color = RGB(127, 127, 127)
-            .TickLabels.Font.Color = RGB(127, 127, 127)
-            .MajorGridlines.Border.Color = RGB(199, 199, 199)
-            .MajorTickMark = xlNone
-            .Format.Line.Visible = msoFalse
-            .DisplayUnit = xlThousands
-            .TickLabels.NumberFormat = "#,##0"
-            .HasDisplayUnitLabel = False
-            .TickLabels.Font.Size = 9
-        End With
+        ' Create secondary y axis
+        .HasAxis(xlValue, xlSecondary) = True
+        .SeriesCollection(1).AxisGroup = xlSecondary
+        
+        For Each Axis In Array(.Axes(xlValue, xlPrimary), .Axes(xlValue, xlSecondary))
+
+            With Axis
+                .HasTitle = True
+                .AxisTitle.text = "€ BILLIONS"
+                .AxisTitle.Font.Size = 9
+                .AxisTitle.Font.Bold = msoFalse
+                .AxisTitle.Orientation = 90
+                .AxisTitle.top = 5
+                .AxisTitle.left = 3
+                .AxisTitle.Font.Color = RGB(127, 127, 127)
+                .TickLabels.Font.Color = RGB(127, 127, 127)
+                .MajorGridlines.Border.Color = RGB(199, 199, 199)
+                .MajorTickMark = xlNone
+                .Format.Line.Visible = msoFalse
+                .DisplayUnit = xlThousands
+                .TickLabels.NumberFormat = "#,##0"
+                .HasDisplayUnitLabel = False
+                .TickLabels.Font.Size = 9
+                .MajorGridlines.Delete
+                
+                ' Ensure two vertical axes min/max agree
+                .MinimumScale = Application.WorksheetFunction.Min( _
+                    MyChart.Axes(xlValue, xlPrimary).MinimumScale, _
+                    MyChart.Axes(xlValue, xlSecondary).MinimumScale)
+                .MaximumScale = Application.WorksheetFunction.Max( _
+                    MyChart.Axes(xlValue, xlPrimary).MaximumScale, _
+                    MyChart.Axes(xlValue, xlSecondary).MaximumScale)
+                
+            End With
+            
+        Next Axis
+        
+        MyChart.Axes(xlCategory).TickLabels.Font.Size = 12
+        MyChart.Axes(xlCategory).TickLabels.Orientation = 15
 
         With .Axes(xlCategory)
             .MajorTickMark = xlNone
@@ -2105,7 +2117,7 @@ Sub ActiveETFChart()
         
         ' Legend & Title
         .HasTitle = True
-        .ChartTitle.text = Join(Array(Year(DateAdd("m", -1, Now)), _
+        .ChartTitle.text = Join(Array(year(DateAdd("m", -1, Now)), _
             "Flows (€B) Active MF vs. ETF"), " ")
         With .Legend
             .top = MyChart.ChartTitle.top + 30
