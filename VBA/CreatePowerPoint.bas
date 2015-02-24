@@ -1,22 +1,21 @@
 Attribute VB_Name = "CreatePowerPoint"
 ' TODO:
-' Finish AddSectionSlide
-' Consider modularizing adding slide (common to all Add* functions)
+' Finish AddCountrySlide
 
 ' Slide types
 ' X 1. Title slide
-' 2. Section slides
-'   * Market Analysis
-' 3. Single charts (resize in excel to 750.24 x 372.96)
+' X 2. Section slides
+'   X Market Analysis
+' X 3. Single charts (resize in excel to 750.24 x 372.96)
 '   X Global Trends - AUM, Gross and Net
 '   X Global Trends - Gross)
-'   >>Global Trends - Net Sales by Investment Type
+'   ? Global Trends - Net Sales by Investment Type
 '   X Global Trends - Redemption Rates
-'   >> Global Trends - Best Sectors Performance, Risk and Sales
-'   >> Global Trends - Products and Players Performance, Risk and Sales (bottom)
+'   ? Global Trends - Best Sectors Performance, Risk and Sales
+'   ? Global Trends - Products and Players Performance, Risk and Sales (bottom)
 '   Market Split - Local & Cross-border Net Sales
-' 4. Double charts - Performance and Sales
-' 5. Country-specific Top Bottom
+' X 4. Double charts - Performance and Sales
+' *5. Country-specific Top Bottom
 
 
 Sub CreatePowerPoint()
@@ -32,11 +31,12 @@ Sub CreatePowerPoint()
     Dim themeLoc            As String
     Dim activeSlide         As PowerPoint.Slide
     Dim cht                 As Excel.ChartObject
+    Dim chts()              As Excel.ChartObject
     Dim tbl                 As Range
+    Dim tbls()              As Range
     Dim tmpRng              As Range
-    Dim counter             As Integer
     Dim title               As String
-    Dim test                As Range
+    Dim i                   As Integer
      
      
     Set oWorkbook = ActiveWorkbook
@@ -102,11 +102,26 @@ Sub CreatePowerPoint()
     
     ' Slide 8
     title = "Performance and Sales"
-    ' TODO: AddDoubleSlide
+    oWorkbook.Worksheets("3Yr Euro TR Quartile").Activate
+    ReDim chts(1 To ActiveSheet.ChartObjects.Count)
+    For i = 1 To ActiveSheet.ChartObjects.Count
+        Set chts(i) = ActiveSheet.ChartObjects(i)
+    Next i
+    AddDoubleSlide newPowerPoint, title, chts
     
     ' Slide 9 - Market Analysis
     AddSectionSlide newPowerPoint, "Market Analysis"
     
+    ' Slide 10 - Local v Cross-border
+    title = "Global Trends - Split–Local & Cross-border Net Sales"
+    oWorkbook.Worksheets("Local vs Cross-border net sa").Activate
+    Set cht = ActiveSheet.ChartObjects(1)
+    AddSingleSlide newPowerPoint, title, cht
+    
+    ' Slide 11 - Italy
+    ' Which args to pass to AddCountrySlide function?
+    title = "Italy - Top & Bottom Products"
+    ' AddCountrySlide
     
     AppActivate title:="Presentation1 - PowerPoint"
     Set activeSlide = Nothing
@@ -157,6 +172,66 @@ Function AddSingleSlide( _
         .Width = 0.9 * sWidth
         .Height = 0.75 * sHeight
     End With
+        
+    ' Title
+    activeSlide.Shapes(1).TextFrame.TextRange.text = title
+
+End Function
+
+' Create slide following formatting for a two charts
+Function AddDoubleSlide( _
+    ByRef PP As PowerPoint.Application, _
+    ByRef title As String, _
+    Optional chts As Variant, _
+    Optional tbls As Variant _
+    )
+
+    Dim activeSlide     As PowerPoint.Slide
+    Dim sHeight         As Long
+    Dim sWidth          As Long
+    Dim ub              As Long
+    Dim i               As Integer
+    
+    
+    ' Add and select new slide
+    With PP.ActivePresentation
+        .Slides.Add .Slides.Count + 1, ppLayoutBlank
+        .Slides(.Slides.Count).CustomLayout = .Designs(1).SlideMaster.CustomLayouts(5)
+        PP.ActiveWindow.View.GotoSlide .Slides.Count
+        Set activeSlide = .Slides(.Slides.Count)
+    End With
+    
+    ' Add chart/table
+    ' nb. access chart property/methods via chts.Chart.<Property>
+    If Not IsMissing(chts) Then
+        For i = 1 To UBound(chts)
+            chts(i).Copy
+            activeSlide.Shapes.Paste
+            Application.Wait (Now + TimeValue("0:00:02"))  ' crashes otherwise
+        Next i
+    ElseIf Not IsMissing(tbls) Then
+        For i = 1 To UBound(tbls)
+            tbls(i).Copy
+            activeSlide.Shapes.Paste
+        Next i
+    Else
+        Exit Function
+    End If
+    
+    'Adjust the positioning of the Charts/Tables on Powerpoint Slide
+    With PP.ActivePresentation.PageSetup
+        sHeight = .slideHeight
+        sWidth = .slideWidth
+    End With
+    
+    For i = 2 To activeSlide.Shapes.Count
+        With activeSlide.Shapes(i)
+            .top = 0.15 * sHeight
+            .left = 0.05 * sWidth + (i - 2) * sWidth / 2.1
+            .Width = 0.9 * sWidth / 2.1
+            .Height = 0.75 * sHeight
+        End With
+    Next i
         
     ' Title
     activeSlide.Shapes(1).TextFrame.TextRange.text = title
@@ -256,8 +331,80 @@ Sub AddSectionSlide(ByRef PP As PowerPoint.Application, ByRef title As String)
         Set activeSlide = .Slides(.Slides.Count)
     End With
     
-    ' Title
-    ' TODO: from here
+    ' Set slide height/width
+    With PP.ActivePresentation.PageSetup
+        sHeight = .slideHeight
+        sWidth = .slideWidth
+    End With
     
-
+    ' Title
+    With activeSlide.Shapes(1)
+        .TextFrame.TextRange.text = title
+        .TextFrame.TextRange.Font.Size = 28
+        .TextFrame.WordWrap = msoFalse
+        .TextFrame.AutoSize = ppAutoSizeShapeToFitText
+        .left = (sWidth - .Width) / 2
+        .top = (sHeight - .Height) / 2
+    End With
+    
 End Sub
+
+' Create slide with Country-specific formatting
+Function AddCountrySlide( _
+    ByRef PP As PowerPoint.Application, _
+    ByRef title As String, _
+    Optional chts As Variant, _
+    Optional tbls As Variant _
+    )
+
+    Dim activeSlide     As PowerPoint.Slide
+    Dim sHeight         As Long
+    Dim sWidth          As Long
+    Dim ub              As Long
+    Dim i               As Integer
+    
+    ' TODO: edit code below to generate country-specific slide
+    ' Add and select new slide
+    With PP.ActivePresentation
+        .Slides.Add .Slides.Count + 1, ppLayoutBlank
+        .Slides(.Slides.Count).CustomLayout = .Designs(1).SlideMaster.CustomLayouts(5)
+        PP.ActiveWindow.View.GotoSlide .Slides.Count
+        Set activeSlide = .Slides(.Slides.Count)
+    End With
+    
+    ' Add chart/table
+    ' nb. access chart property/methods via chts.Chart.<Property>
+    If Not IsMissing(chts) Then
+        For i = 1 To UBound(chts)
+            chts(i).Copy
+            activeSlide.Shapes.Paste
+            Application.Wait (Now + TimeValue("0:00:02"))
+        Next i
+    ElseIf Not IsMissing(tbls) Then
+        For i = 1 To UBound(tbls)
+            tbls(i).Copy
+            activeSlide.Shapes.Paste
+        Next i
+    Else
+        Exit Function
+    End If
+    
+    'Adjust the positioning of the Charts/Tables on Powerpoint Slide
+    With PP.ActivePresentation.PageSetup
+        sHeight = .slideHeight
+        sWidth = .slideWidth
+    End With
+    
+    For i = 2 To activeSlide.Shapes.Count
+        With activeSlide.Shapes(i)
+            .top = 0.15 * sHeight
+            .left = 0.05 * sWidth + (i - 2) * sWidth / 2.1
+            .Width = 0.9 * sWidth / 2.1
+            .Height = 0.75 * sHeight
+        End With
+    Next i
+        
+    ' Title
+    activeSlide.Shapes(1).TextFrame.TextRange.text = title
+
+End Function

@@ -7,7 +7,7 @@ Attribute VB_Name = "FormatData"
 Function AbbrCtryName(ByVal NameRng As Range)
 
     Dim CountryNames    As New Scripting.Dictionary
-    Dim Country         As Variant
+    Dim country         As Variant
 
     ' Map country names to abbreviations
     CountryNames.Add "Italy", "ITA"
@@ -24,9 +24,9 @@ Function AbbrCtryName(ByVal NameRng As Range)
     CountryNames.Add "Belgium", "BEL"
     CountryNames.Add "Benelux", "Benelux"
     
-    For Each Country In NameRng.Columns(1).Cells
-        Country.Value = CountryNames(Country.Value)
-    Next Country
+    For Each country In NameRng.Columns(1).Cells
+        country.Value = CountryNames(country.Value)
+    Next country
 
 End Function
 
@@ -928,6 +928,15 @@ Sub LvCBData()
     Next Item
     
     DataArea.DataRange.Sort Key1:=DataArea.DataRange.Columns(1), Header:=xlNo
+    
+    ' Sort by sum (descending)
+    Count(1) = DataArea.DataRange.Columns.Count + 1
+    Count(2) = DataArea.DataRange(1, 1).End(xlDown).row
+    DataArea.LastCol = Count(1)
+    DataArea.LastRow = Count(2)
+    DataArea.DataRange.Columns(Count(1)).Formula = "=SUM(RC[-2]:RC[-1])"
+    DataArea.DataRange.Sort Key1:=DataArea.DataRange.Columns(Count(1)), Header:=xlNo, Order1:=xlDescending
+    DataArea.DataRange.Columns(Count(1)).ClearContents
     
     ' Abbreviate country names
     AbbrCtryName DataArea.DataRange.Columns(1)
