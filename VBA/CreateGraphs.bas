@@ -634,7 +634,12 @@ Sub MTopBottomChart()
                 AuxTitle.TextFrame2.TextRange.Characters.text = "€ Millions"
                 
                 .Axes(xlValue).TickLabels.NumberFormat = "#,##0_);[Red](#,##0)"
-            
+                If j = 1 Then
+                    .Axes(xlCategory).TickLabelPosition = xlLow
+                Else
+                    .Axes(xlCategory).TickLabelPosition = xlHigh
+                End If
+                
                 ' Colors
                 ' Local = Navy
                 .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(12, 74, 116)
@@ -649,7 +654,7 @@ Sub MTopBottomChart()
         ' Group together
         MySheet.Shapes.Range(Array(MyChart(i, 1).Parent.Name, _
             MyChart(i, 2).Parent.Name)).Group
-        
+
     Next i
     
 End Sub
@@ -893,6 +898,7 @@ Sub BubbleChart(TitleText As String, xLabelText As String, yLabelText As String)
             ' Adjust for squished plot area
             Application.DisplayAlerts = False
             
+            .PlotArea.Select
             With .PlotArea
                 .top = MyChart.ChartArea.top + 10
                 .left = MyChart.ChartArea.left
@@ -1024,7 +1030,7 @@ Sub ManagerByCtryChart()
     Dim MyChart                 As Chart
     Dim ChartWidth, ChartHeight As Long
     Dim CountryNames            As New Scripting.Dictionary
-    Dim Country                 As Variant
+    Dim country                 As Variant
 
     Set MySheet = ActiveSheet
     Set Area(1, 1) = Cells(2, 1)
@@ -1523,6 +1529,7 @@ Sub ManagerBubbleChart(Optional TitleText As String = "")
                                     
             ' Adjust for squished plot area
             Application.DisplayAlerts = False
+            .PlotArea.Select
             With .PlotArea
                 .top = 20
                 .left = 0
@@ -1826,7 +1833,7 @@ Sub EuroTRQuartileChart()
     Set DataArea = Range(Area(1, 1), Area(2, 2))
     
     ' Set Chart location params
-    ChartWidth = 14
+    ChartWidth = 8
     ChartHeight = 28
     For i = 1 To 2
         Set startCell = Area(2, 1).Offset(2 + (i - 1) * (ChartHeight + 1), 0)

@@ -86,7 +86,7 @@ Sub EditHeader(Optional Prefix As String, Optional Suffix As String)
     Regex.Pattern = ".*\[(.*)\].*"
     For Each Header In HeaderRange.Cells
         Set Matches = Regex.Execute(Header.Value)
-        If Regex.test(Header.Value) Then
+        If Regex.Test(Header.Value) Then
             Header.Value = Join(Array(Prefix, Matches(0).SubMatches(0), Suffix), " ")
             Header.Value = LTrim(RTrim(Header.Value))
         End If
@@ -1773,7 +1773,7 @@ Sub InvTypeGrossData()
     EditHeader
     
     ' If no market column, then add Total into first column
-    If Not Regex.test(DataRange(1, 1).Value) Then
+    If Not Regex.Test(DataRange(1, 1).Value) Then
         Columns(1).Insert
         Cells(1, 1).Value = "Origination Market (SI)"
         Range(Cells(2, 1), Cells(DataRange.Rows.Count, 1)).Value = "Total"
@@ -1855,7 +1855,7 @@ Sub ActiveETFData()
     
     For Each rec In Range(FinalRng, FinalRng.Offset(0, 2)).Rows
         Set Matches = Regex.Execute(rec.Cells(1, 1).Value)
-        If Regex.test(rec.Cells(1, 1).Value) Then
+        If Regex.Test(rec.Cells(1, 1).Value) Then
             tmpRng.Cells(1, 2).Value = tmpRng.Cells(1, 2).Value + _
                 Cats(rec.Cells(1, 1).Value)(1)
             tmpRng.Cells(1, 3).Value = tmpRng.Cells(1, 3).Value + _
@@ -1889,7 +1889,7 @@ Sub MarketNetTblData()
     Set tblRng = Cells(1, 1).CurrentRegion
     
     ' Clear extraneous
-    With Range(Rows(tblRng.Rows.Count), Rows(Rows.Count))
+    With Range(Rows(tblRng.Rows.Count + 1), Rows(Rows.Count))
         .ClearContents
         .ClearFormats
         .AutoFit
@@ -1903,7 +1903,7 @@ Sub MarketNetTblData()
         Regex.Pattern = _
             "((?:Local|Cross Border) Net Sales EUR)\s\[(\d \w{2,3})-(\d{1,2})/(\d\d)\]"
         Set Match = Regex.Execute(HeaderCell.Value)
-        If Regex.test(HeaderCell.Value) Then
+        If Regex.Test(HeaderCell.Value) Then
             MonthText = MonthName(Match(0).SubMatches(2), True) & " " & Match(0).SubMatches(3)
             HeaderCell.Value = Match(0).SubMatches(0) & " " & MonthText
             If Match(0).SubMatches(1) = "1 Yr" Then

@@ -13,7 +13,7 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
     
     For Each Valid In ValidNames
         Regex.Pattern = ".{2,3}" & Valid & "$"
-        OneTrue = Regex.test(ThisName)
+        OneTrue = Regex.Test(ThisName)
         MatchSheetName = Valid
         If OneTrue = True Then Exit For
     Next Valid
@@ -36,6 +36,7 @@ Sub CreateReport()
     Dim mBefore     As Date
     Dim FileDate    As String
     Dim ReportDate  As String
+    Dim MacroBook   As Workbook
     Dim DataBook    As Workbook
     Dim ValidSheets As Variant
     Dim iter        As Integer
@@ -43,7 +44,10 @@ Sub CreateReport()
     
     Application.ScreenUpdating = False  ' To boost performance
         
+    Set MacroBook = Workbooks("CBSOReportMacros.xlsb")
+    Workbooks.Open MacroBook.Path & "\" & MacroBook.Worksheets("Main").Cells(2, 3).Value
     Set DataBook = ActiveWorkbook
+    
     
     ' Set Bubble chart standard labels (ex Global Bubbles)
     BubbleLab(1) = "Standard Deviation of Monthly Return in Euro (3 Year Weighted Average)"
@@ -262,7 +266,7 @@ Sub CreateReport()
     If Dir(FPath & "\" & FName) <> "" Then
         MsgBox "File " & FPath & "\" & FName & " already exists"
     Else
-        DataBook.SaveAs Filename:=FPath & "\" & FName & ".xlsm", _
+        DataBook.SaveAs FileName:=FPath & "\" & FName & ".xlsm", _
             FileFormat:=52  ' to avoid compatibility problems, 2013 xlsm
     End If
 
