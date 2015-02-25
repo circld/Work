@@ -13,7 +13,7 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
     
     For Each Valid In ValidNames
         Regex.Pattern = ".{2,3}" & Valid & "$"
-        OneTrue = Regex.Test(ThisName)
+        OneTrue = Regex.test(ThisName)
         MatchSheetName = Valid
         If OneTrue = True Then Exit For
     Next Valid
@@ -25,7 +25,6 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
     
     
 End Function
-
 
 ' Run this proc with Dash Report open (active worksheet insensitive)
 Sub CreateReport()
@@ -58,8 +57,8 @@ Sub CreateReport()
     ValidSheets = Array("Global Net vs Gross Sales", "Global Gross Sales %", _
                         "Net Sales vs Avg. Performance", "Redemption Rate Calculation", _
                         "Morningstar Ratings", "Performance Global TopBottom", _
-                        "Market Global TopBottom 5 Se", "Market Share by Manager ", _
-                        "Global Bubbles", "Local vs Cross-border net sa", _
+                        "Market Global TopBottom 5 M", "Market Global TopBottom 5 Y", "Market Share by Manager ", _
+                        "Global Bubbles", "Local vs Cross-border net sal", _
                         "Manager Net Sales by Country", "Global Gross Sales % by Regi", _
                         "3 Equity Categories NetSales", "Global Bubbles Latest Qr", _
                         "Global Bubbles Prior Qr 3", "Global Bubbles Latest 12 Mth", _
@@ -122,8 +121,13 @@ Sub CreateReport()
     Call FormatData.PTopBottomData
     ' No chart to create, table only
     
-    ' Market Global TopBottom Selling Cats
-    DataBook.Worksheets("Market Global TopBottom 5 Se").Activate
+    ' Market Global TopBottom Selling Cats (Month)
+    DataBook.Worksheets("Market Global TopBottom 5 M").Activate
+    Call FormatData.MTopBottomData
+    Call CreateGraphs.MTopBottomChart
+    
+    ' Market Global TopBottom Selling Cats (Year)
+    DataBook.Worksheets("Market Global TopBottom 5 Y").Activate
     Call FormatData.MTopBottomData
     Call CreateGraphs.MTopBottomChart
     
@@ -138,7 +142,7 @@ Sub CreateReport()
     Call CreateGraphs.MktShareChart
     
     ' Local vs Cross-border Net Sales
-    DataBook.Worksheets("Local vs Cross-border net sa").Activate
+    DataBook.Worksheets("Local vs Cross-border net sal").Activate
     Call FormatData.LvCBData
     Call CreateGraphs.LvCBChart
     

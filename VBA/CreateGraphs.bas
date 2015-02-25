@@ -627,18 +627,13 @@ Sub MTopBottomChart()
                 .HasTitle = True
                 .ChartTitle.text = Countries(i).Name
                 
-                Set AuxTitle = MyChart(i, j).Shapes.AddLabel(msoTextOrientationHorizontal, _
-                    MyChart(i, j).ChartTitle.left + 1, _
-                    MyChart(i, j).ChartTitle.top + 20, _
-                    60, 19)
-                AuxTitle.TextFrame2.TextRange.Characters.text = "€ Millions"
-                
                 .Axes(xlValue).TickLabels.NumberFormat = "#,##0_);[Red](#,##0)"
                 If j = 1 Then
                     .Axes(xlCategory).TickLabelPosition = xlLow
                 Else
                     .Axes(xlCategory).TickLabelPosition = xlHigh
                 End If
+                .Axes(xlCategory).TickLabels.Font.Size = 8
                 
                 ' Colors
                 ' Local = Navy

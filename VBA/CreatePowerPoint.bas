@@ -1,5 +1,5 @@
 Attribute VB_Name = "CreatePowerPoint"
-
+' TODO: add BubbleChart (see spreadsheet)
 Sub CreatePowerPoint()
 
  ' Add a reference to the Microsoft PowerPoint Library by:
@@ -20,7 +20,8 @@ Sub CreatePowerPoint()
     Dim tbls()              As Range
     Dim title               As String
     Dim i                   As Integer
-    Dim CtryMap             As New Scripting.Dictionary
+    Dim CtryMapMth          As New Scripting.Dictionary
+    Dim CtryMapYr           As New Scripting.Dictionary
     Dim TablePage           As String
     Dim Ctry                As Variant
     Dim CtryName            As String
@@ -108,22 +109,25 @@ Sub CreatePowerPoint()
     
     ' Slide 10 - Local v Cross-border
     title = "Global Trends - Split–Local & Cross-border Net Sales"
-    oWorkbook.Worksheets("Local vs Cross-border net sa").Activate
+    oWorkbook.Worksheets("Local vs Cross-border net sal").Activate
     Set cht = ActiveSheet.ChartObjects(1)
     AddSingleSlide newPowerPoint, title, cht
     
     ' Country-specific slides
     ' Market Global TopBottom 5 Se
     ' Origination Markets Table
-    Set CtryMap = MapChartsToCountries(oWorkbook.Name, "Market Global TopBottom 5 Se")
+    Set CtryMapMth = MapChartsToCountries(oWorkbook.Name, "Market Global TopBottom 5 M")
+    Set CtryMapYr = MapChartsToCountries(oWorkbook.Name, "Market Global TopBottom 5 Y")
     TablePage = "Origination Markets Table"
     
-    For Each Ctry In CtryMap.Keys
+    For Each Ctry In CtryMapMth.Keys
         CtryName = Ctry
         title = CtryName & " - Top & Bottom Products"
-        ReDim chts(1 To 2)
-        Set chts(1) = CtryMap(CtryName)(0)
-        Set chts(2) = CtryMap(CtryName)(1)
+        ReDim chts(1 To 4)
+        Set chts(1) = CtryMapMth(CtryName)(0)
+        Set chts(2) = CtryMapMth(CtryName)(1)
+        Set chts(3) = CtryMapYr(CtryName)(0)
+        Set chts(4) = CtryMapYr(CtryName)(1)
         newPowerPoint.ActivePresentation.Save
         AddCountrySlide newPowerPoint, title, chts, _
             CountryTable(oWorkbook.Name, TablePage, CtryName)
@@ -158,7 +162,9 @@ Function AddSingleSlide( _
     End With
     
     ' Add chart/table
+    Application.CutCopyMode = 0
     If Not cht Is Nothing Then
+        cht.Select
         cht.Copy
     ElseIf Not tbl Is Nothing Then
         tbl.Copy
@@ -212,7 +218,8 @@ Function AddDoubleSlide( _
     ' nb. access chart property/methods via chts.Chart.<Property>
     If Not IsMissing(chts) Then
         For i = 1 To UBound(chts)
-            chts(i).CopyPicture
+            chts(i).Select
+            chts(i).Copy
             activeSlide.Shapes.Paste
         Next i
     ElseIf Not IsMissing(tbls) Then
@@ -365,10 +372,12 @@ Function AddCountrySlide( _
     )
 
     Dim activeSlide     As PowerPoint.Slide
+    Dim cht             As Variant
     Dim sHeight         As Long
     Dim sWidth          As Long
     Dim ub              As Long
     Dim i               As Integer
+
     
     ' Add and select new slide
     With PP.ActivePresentation
@@ -379,19 +388,33 @@ Function AddCountrySlide( _
     End With
     
     ' Adjust chart titles
-    chts(1).Chart.ChartTitle.text = "Top"
-    chts(2).Chart.ChartTitle.text = "Bottom"
+    chts(1).Chart.ChartTitle.text = "Top 5 Products"
+    chts(2).Chart.ChartTitle.text = "Bottom 5 Products"
+    chts(3).Chart.ChartTitle.text = "Top 5 Products"
+    chts(4).Chart.ChartTitle.text = "Bottom 5 Products"
     
-    ' Add charts & table
-    ' Had to use CopyPicture to avoid unpredictable run-time errors (1004)
-    ' The SoftEdge type is to hide the picture border
-    chts(1).CopyPicture
-    activeSlide.Shapes.Paste
-    activeSlide.Shapes(activeSlide.Shapes.Count).SoftEdge.Type = msoSoftEdgeType3
-    chts(2).CopyPicture
-    activeSlide.Shapes.Paste
-    activeSlide.Shapes(activeSlide.Shapes.Count).SoftEdge.Type = msoSoftEdgeType3
+    For i = 1 To 4
+        With chts(i).Chart.ChartTitle
+            .Font.Size = 8
+            .Font.Bold = msoFalse
+        End With
+        ' Only want legend for bottom left chart
+        If i <> 3 Then
+            chts(i).Chart.HasLegend = False
+        End If
+    Next i
+    
+    ' Add charts
+    ' cht.Select necessary to prevent crash (no idea why)
+    For Each cht In chts
+        cht.Select
+        cht.Copy
+        activeSlide.Shapes.Paste
+    Next cht
+    
+    ' Add table
     tbl.Copy
+    activeSlide.Select
     activeSlide.Shapes.Paste
     
     'Adjust the positioning of the Charts/Tables on Powerpoint Slide
@@ -402,22 +425,59 @@ Function AddCountrySlide( _
     
     For i = 2 To activeSlide.Shapes.Count
         With activeSlide.Shapes(i)
+            ' For top bottom charts
             If i < activeSlide.Shapes.Count Then
-                .top = 0.15 * sHeight + (i - 2) * sHeight / 2.5
-                .left = 0.05 * sWidth
-                .Width = 0.9 * sWidth / 2.1
-                .Height = 0.75 * sHeight / 2.1
+                If i Mod 2 = 0 Then
+                    .left = 0.02 * sWidth
+                Else
+                    .left = 0.05 * sWidth + sWidth / 4.4
+                End If
+                
+                If i < 4 Then
+                    .top = 0.18 * sHeight
+                Else
+                    .top = 0.18 * sHeight + sHeight / 2.5
+                End If
+                
+                .Width = sWidth / 3.6
+                .Height = 0.75 * sHeight / 2.4
+                
+                ' Ensure chart with legend same size as others
+                If i = 4 Then
+                    .Height = 0.75 * sHeight / 2.1
+                End If
+            ' For table
             Else
-                .top = 0.15 * sHeight
-                .left = 0.05 * sWidth + sWidth / 2.1
-                .Width = 0.9 * sWidth / 2.1
-                .Height = 0.75 * sHeight
+                .top = 0.18 * sHeight
+                .left = 0.1 * sWidth + sWidth / 2
+                .Width = 0.85 * sWidth / 2.3
+                .Height = 0.7 * sHeight
             End If
         End With
     Next i
         
-    ' Title
+    ' Add slide title and chart title
     activeSlide.Shapes(1).TextFrame.TextRange.text = title
+    ' Latest Month
+    activeSlide.Shapes.AddTextbox _
+        msoTextOrientationHorizontal, _
+        sWidth / 5.7, _
+        sHeight / 7, _
+        sWidth * 0.25, 20
+    With activeSlide.Shapes(activeSlide.Shapes.Count).TextFrame.TextRange
+        .text = "Latest Month in € Millions"
+        .Font.Size = 14
+    End With
+    ' Last 12 Months
+    activeSlide.Shapes.AddTextbox _
+        msoTextOrientationHorizontal, _
+        sWidth / 6, _
+        sHeight / 1.85, _
+        sWidth * 0.25, 20
+    With activeSlide.Shapes(activeSlide.Shapes.Count).TextFrame.TextRange
+        .text = "Last 12 Months in € Millions"
+        .Font.Size = 14
+    End With
 
 End Function
 
