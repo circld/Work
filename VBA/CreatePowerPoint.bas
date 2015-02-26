@@ -1,12 +1,39 @@
 Attribute VB_Name = "CreatePowerPoint"
-' TODO: add BubbleChart (see spreadsheet)
+' Was running into random errors where PowerPoint would die. Sleep and clearing Windows
+' clipboard were both intended to avoid memory-related issues.
+
+' For whatever reasons, the steps that ended up working most effectively involved
+' either changing paste steps from Slide.Shapes.Paste to PowerPoint.ActiveWindow.View.Paste
+' or by adding a step where charts were selected before copying and pasting
+
+' http://www.vbaexpress.com/kb/getarticle.php?kb_id=205
+Option Explicit
+Private Declare Sub Sleep Lib "kernel32" (ByVal lngMilliSeconds As Long)
+Public Declare Function OpenClipboard Lib "user32" (ByVal hwnd As Long) As Long
+Public Declare Function EmptyClipboard Lib "user32" () As Long
+Public Declare Function CloseClipboard Lib "user32" () As Long
+ 
+Public Function ClearClipboard()
+    OpenClipboard (0&)
+    EmptyClipboard
+    CloseClipboard
+End Function
+ 
+Sub ccc()
+    Call ClearClipboard
+End Sub
+
+
 Sub CreatePowerPoint()
 
  ' Add a reference to the Microsoft PowerPoint Library by:
     ' 1. Go to Tools in the VBA menu
     ' 2. Click on Reference
     ' 3. Scroll down to Microsoft PowerPoint X.0 Object Library, check the box, and press Okay
- 
+    
+    ' nb. several random errors were fixed by selecting charts before copying/pasting
+    '     and by adding Debug.Print statements; try these first if other errors occur
+
     ' Var declarations
     Dim FileName            As String
     Dim FPath                As String
@@ -26,7 +53,7 @@ Sub CreatePowerPoint()
     Dim Ctry                As Variant
     Dim CtryName            As String
      
-    
+        
     ' Find Charts
     FPath = Workbooks("CBSOReportMacros.xlsb").Path & "\"
     FileName = Dir(FPath & "*.xlsm")
@@ -61,12 +88,14 @@ Sub CreatePowerPoint()
     AddTitleSlide newPowerPoint
     
     ' Slide 2
+    newPowerPoint.ActivePresentation.Save
     title = "Global Trends - AUM, Gross and Net Sales"
     oWorkbook.Worksheets("Global Net vs Gross Sales").Activate
     Set cht = ActiveSheet.ChartObjects(1)
     AddSingleSlide newPowerPoint, title, cht
     
     ' Slide 3
+    newPowerPoint.ActivePresentation.Save
     title = "Global Trends - Gross Sales"
     oWorkbook.Worksheets("Global Gross Sales %").Activate
     Set cht = ActiveSheet.ChartObjects(1)
@@ -79,27 +108,30 @@ Sub CreatePowerPoint()
     ' Set cht = ActiveSheet.ChartObjects(1)
     
     ' Slide 5
+    newPowerPoint.ActivePresentation.Save
     title = "Global Trends - Redemption Rates over Assets by Investment Type"
     oWorkbook.Worksheets("Redemption Rate Calculation").Activate
     Set cht = ActiveSheet.ChartObjects(1)
     AddSingleSlide newPowerPoint, title, cht
     
     ' Slide 6
+    newPowerPoint.ActivePresentation.Save
     title = "Global Trends - Best Sectors Performance, Risk and Sales"
     ' NOTE: unclear which bubble chart this is; emailed 2/20
-    ' oWorkbook.Worksheets().Activate
-    ' Set cht = ActiveSheet.ChartObjects(1)
-    
+    oWorkbook.Worksheets("Global Bubbles Latest Qr").Activate
+    Set cht = ActiveSheet.ChartObjects(1)
+    AddSingleSlide newPowerPoint, title, cht
+
     ' Slide 7
     title = "Global Trends - Products and Player Performance, Risk and Sales (Bottom Categories)"
     ' NOTE: don't currently generate this chart
     
     ' Slide 8
-    newPowerPoint.ActivePresentation.Save
     title = "Performance and Sales"
     oWorkbook.Worksheets("3Yr Euro TR Quartile").Activate
     ReDim chts(1 To ActiveSheet.ChartObjects.Count)
     For i = 1 To ActiveSheet.ChartObjects.Count
+        ActiveSheet.ChartObjects(i).Select
         Set chts(i) = ActiveSheet.ChartObjects(i)
     Next i
     AddDoubleSlide newPowerPoint, title, chts
@@ -152,6 +184,9 @@ Function AddSingleSlide( _
     Dim sHeight         As Long
     Dim sWidth          As Long
     
+    ' Clear clipboard & sleep
+    ccc
+    Sleep 100
     
     ' Add and select new slide
     With PP.ActivePresentation
@@ -160,6 +195,8 @@ Function AddSingleSlide( _
         PP.ActiveWindow.View.GotoSlide .Slides.Count
         Set activeSlide = .Slides(.Slides.Count)
     End With
+    
+    activeSlide.Select
     
     ' Add chart/table
     Application.CutCopyMode = 0
@@ -171,7 +208,7 @@ Function AddSingleSlide( _
     Else
         Exit Function
     End If
-    activeSlide.Shapes.Paste
+    PP.ActiveWindow.View.Paste
     
     'Adjust the positioning of the Chart on Powerpoint Slide
     With PP.ActivePresentation.PageSetup
@@ -205,6 +242,10 @@ Function AddDoubleSlide( _
     Dim ub              As Long
     Dim i               As Integer
     
+    ' Clear clipboard & sleep
+    ccc
+    Sleep 100
+    
     
     ' Add and select new slide
     With PP.ActivePresentation
@@ -220,16 +261,19 @@ Function AddDoubleSlide( _
         For i = 1 To UBound(chts)
             chts(i).Select
             chts(i).Copy
-            activeSlide.Shapes.Paste
+            Sleep 100
+            PP.ActiveWindow.View.Paste
         Next i
     ElseIf Not IsMissing(tbls) Then
         For i = 1 To UBound(tbls)
             tbls(i).Copy
-            activeSlide.Shapes.Paste.Select
+            Sleep 100
+            PP.ActiveWindow.View.Paste
         Next i
     Else
         Exit Function
     End If
+    
     
     'Adjust the positioning of the Charts/Tables on Powerpoint Slide
     With PP.ActivePresentation.PageSetup
@@ -238,6 +282,7 @@ Function AddDoubleSlide( _
     End With
     
     For i = 2 To activeSlide.Shapes.Count
+        activeSlide.Shapes(i).Select
         With activeSlide.Shapes(i)
             .SoftEdge.Type = msoSoftEdgeType3
             .top = 0.15 * sHeight
@@ -258,6 +303,7 @@ Function AddTitleSlide(ByRef PP As PowerPoint.Application)
     Dim mth, yr, myr, txt   As String
     Dim txtRng              As TextRange
     Dim sHeight, sWidth     As Long
+    Dim activeSlide         As PowerPoint.Slide
     
     
     ' Set appropriate month + year
@@ -331,7 +377,7 @@ Function AddTitleSlide(ByRef PP As PowerPoint.Application)
     
 End Function
 
-Sub AddSectionSlide(ByRef PP As PowerPoint.Application, ByRef title As String)
+Function AddSectionSlide(ByRef PP As PowerPoint.Application, ByRef title As String)
 
     Dim activeSlide     As PowerPoint.Slide
     Dim sHeight         As Long
@@ -361,7 +407,7 @@ Sub AddSectionSlide(ByRef PP As PowerPoint.Application, ByRef title As String)
         .top = (sHeight - .Height) / 2
     End With
     
-End Sub
+End Function
 
 ' Create slide with Country-specific formatting
 Function AddCountrySlide( _
@@ -378,6 +424,8 @@ Function AddCountrySlide( _
     Dim ub              As Long
     Dim i               As Integer
 
+    ' Clear clipboard
+    ccc
     
     ' Add and select new slide
     With PP.ActivePresentation
@@ -409,13 +457,14 @@ Function AddCountrySlide( _
     For Each cht In chts
         cht.Select
         cht.Copy
-        activeSlide.Shapes.Paste
+        Sleep 100
+        PP.ActiveWindow.View.Paste
     Next cht
     
     ' Add table
     tbl.Copy
-    activeSlide.Select
-    activeSlide.Shapes.Paste
+    Sleep 100
+    PP.ActiveWindow.View.Paste
     
     'Adjust the positioning of the Charts/Tables on Powerpoint Slide
     With PP.ActivePresentation.PageSetup
