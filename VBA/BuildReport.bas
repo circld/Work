@@ -26,6 +26,7 @@ Function MatchSheetName(ThisName As String, ValidNames As Variant) As String
     
 End Function
 
+
 ' Run this proc with Dash Report open (active worksheet insensitive)
 Sub CreateReport()
 
@@ -68,7 +69,7 @@ Sub CreateReport()
                         "Global Bubbles Int'l Net Flo", "Morningstar Europe", _
                         "Investment Type Gross Sales ", "Total Investment Type Gross ", _
                         "ETF vs Active YTD by categor", "Origination Markets Table", _
-                        "Bubble Chart - Equity", "Bubble Chart - Bond" _
+                        "Bubble Chart - Equity", "Bubble Chart - Bond", "1Yr Euro TR Quartile" _
                         )
                         
     ' Output file path & name (with dates)
@@ -164,6 +165,11 @@ Sub CreateReport()
     ' Euro Net Flows By TR Quartile
     DataBook.Worksheets("Euro Net Flows By TR Quartil").Activate
     Call FormatData.EuroTRQuartileData
+    Call CreateGraphs.EuroTRQuartileChart
+    
+    ' Euro Net Flows By 1-Yr TR Q
+    DataBook.Worksheets("1Yr Euro TR Quartile").Activate
+    Call FormatData.TrailTRData(1, 2)
     Call CreateGraphs.EuroTRQuartileChart
     
     ' Euro Net Flows By 3-Yr TR Q
