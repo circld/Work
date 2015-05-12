@@ -67,8 +67,9 @@ def is_single_sheet(sheet_names):
     Returns True if only a single sheet or all sheets have default names
     """
     single_sheet = len(sheet_names) == 1
-    excel_default_sheets = sheet_names[0] == 'Sheet1' and sheet_names[1] == 'Sheet2' \
-        and sheet_names[2] == 'Sheet3'
+    if len(sheet_names) > 1:
+        excel_default_sheets = sheet_names[0] == 'Sheet1' and sheet_names[1] == 'Sheet2' \
+            and sheet_names[2] == 'Sheet3'
     return single_sheet or excel_default_sheets
 
 
