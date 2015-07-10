@@ -37,7 +37,7 @@ def robocopy(source, destination, filenames, options):
     commands.append("popd")
 
     # run command
-    system("&& ".join(commands))  # join separate commands with ;
+    system("&& ".join(commands))  # join separate commands with && (cmd.exe)
 
 
 def create_parser():
